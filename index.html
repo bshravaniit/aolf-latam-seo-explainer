@@ -1,0 +1,1363 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>How Search Finds Us</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --sun:#ff9800; --sun-dark:#f17225; --sun-pale:#fff4e5; --dawn:linear-gradient(90deg,#ffb300,#ff9800 45%,#f17225);
+  --ink:#222; --sub:#5f5f5f; --label:#8d8d8d; --line:#e4e4e4; --soft:#f6f5f3; --white:#fff;
+  --purple:#8441ab; --purple-pale:#f3ecf8; --red:#c8402b; --red-pale:#fbecea; --green:#3d8b5a; --green-pale:#e9f4ed;
+  --serif:Lora,Georgia,serif; --sans:Poppins,system-ui,sans-serif;
+  --wrap:1120px;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--white);color:var(--ink);font:300 16px/1.65 var(--sans);-webkit-font-smoothing:antialiased}
+a{color:var(--sun-dark)}
+:focus-visible{outline:3px solid var(--purple);outline-offset:2px;border-radius:4px}
+.wrap{max-width:var(--wrap);margin:0 auto;padding:0 24px}
+h1,h2,h3{font-family:var(--serif);font-weight:500;line-height:1.2;margin:0}
+h2{font-size:clamp(28px,3.4vw,40px)}
+h3{font-size:22px}
+p{margin:0 0 14px;max-width:68ch}
+strong{font-weight:600}
+.lead{font-size:18px;color:var(--sub)}
+.btn{display:inline-flex;align-items:center;gap:8px;border:0;border-radius:999px;padding:11px 24px;font:500 15px var(--sans);cursor:pointer;text-decoration:none;color:#fff;background:var(--dawn);box-shadow:0 6px 18px rgba(241,114,37,.25)}
+.btn.ghost{background:#fff;color:var(--ink);border:1px solid var(--line);box-shadow:none}
+
+.top{position:sticky;top:0;z-index:30;background:rgba(255,255,255,.94);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.top .wrap{display:flex;align-items:center;gap:20px;height:64px}
+.top svg.logo{height:38px;width:auto;flex:none}
+.top .doc{font-size:13px;color:var(--sub);margin-left:auto;text-align:right;line-height:1.3}
+
+.hero{padding:64px 0 72px;background:radial-gradient(1200px 420px at 85% 0%,#fff1dc 0%,rgba(255,255,255,0) 65%)}
+.hero .wrap{display:grid;grid-template-columns:1.05fr 1fr;gap:56px;align-items:center}
+.hero h1{font-size:clamp(36px,4.6vw,58px);letter-spacing:-.5px}
+.hero .lead{margin-top:20px}
+.hero .ctas{display:flex;gap:12px;flex-wrap:wrap;margin-top:26px}
+.who{display:flex;gap:10px;margin-top:28px;flex-wrap:wrap}
+.who > span{font-size:13px;background:var(--soft);border-radius:999px;padding:6px 14px;color:var(--sub)}
+
+.serp{background:#fff;border:1px solid var(--line);border-radius:18px;box-shadow:0 24px 60px rgba(60,40,10,.10);padding:20px 22px 8px;font-family:Arial,sans-serif}
+.serp .bar{display:flex;align-items:center;gap:10px;border:1px solid #dfe1e5;border-radius:24px;padding:10px 16px;font-size:15px;color:#202124;min-height:44px}
+.serp .bar svg{flex:none}
+.serp .typed{white-space:nowrap;overflow:hidden}
+.serp .caret{display:inline-block;width:1.5px;height:18px;background:#202124;margin-left:1px;animation:blink 1s steps(1) infinite;vertical-align:middle}
+@keyframes blink{50%{opacity:0}}
+.serp .loc{font-size:12px;color:#70757a;margin:10px 4px 6px}
+.res{padding:12px 4px;border-top:1px solid #f1f1f1;opacity:0;transform:translateY(8px);transition:opacity .5s,transform .5s}
+.res.in{opacity:1;transform:none}
+.res .u{font-size:12px;color:#4d5156}
+.res .t{font-size:17px;color:#1a0dab;margin:2px 0}
+.res .d{font-size:13px;color:#4d5156;line-height:1.45}
+.res.ours{position:relative;background:var(--sun-pale);border-radius:10px;border-top-color:transparent;padding:12px 10px}
+.res.ours .pill{position:absolute;right:8px;top:8px;font:500 11px var(--sans);color:var(--sun-dark);background:#fff;border:1px solid #ffd59a;border-radius:999px;padding:2px 9px}
+.res.ours .d{color:var(--red)}
+.serp .note{font:12px var(--sans);color:var(--label);padding:8px 4px 10px}
+
+.short{background:var(--soft);padding:64px 0}
+.short .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:28px;margin-top:30px}
+.fact{background:#fff;border-radius:16px;padding:24px 24px 20px;border-top:4px solid var(--sun)}
+.fact.red{border-top-color:var(--red)}
+.fact.purple{border-top-color:var(--purple)}
+.fact .n{font:500 44px/1 var(--serif);margin-bottom:10px}
+.fact p{font-size:15px;margin:0;color:var(--sub)}
+.fact p b{color:var(--ink);font-weight:500}
+
+.journey-intro{padding:80px 0 24px}
+.rail{position:sticky;top:64px;z-index:20;background:#fff;border-bottom:1px solid var(--line)}
+.rail .in{max-width:var(--wrap);margin:0 auto;padding:0 24px;position:relative}
+.rail ol{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(6,1fr)}
+.rail li a{display:block;padding:14px 6px 12px;text-decoration:none;color:var(--label);font-size:13px;line-height:1.25;transition:color .3s}
+.rail li a b{display:block;font:500 15px var(--serif);color:inherit}
+.rail li.on a,.rail li.done a{color:var(--ink)}
+.rail .track{position:absolute;left:24px;right:24px;bottom:-1px;height:3px;background:var(--line)}
+.rail .fill{position:absolute;left:0;top:0;bottom:0;width:0;background:var(--dawn);transition:width .5s ease}
+.rail .fill::after{content:"";position:absolute;right:-7px;top:-5px;width:13px;height:13px;border-radius:50%;background:var(--sun);box-shadow:0 0 0 6px rgba(255,152,0,.18)}
+
+.stage{padding:72px 0;border-bottom:1px solid var(--line);scroll-margin-top:130px}
+.stage .wrap{display:grid;grid-template-columns:1fr 1.05fr;gap:56px;align-items:start}
+.stage .step{font:500 14px var(--sans);color:var(--sun-dark);margin-bottom:10px}
+.stage h2{margin-bottom:18px}
+.stage .q{font:italic 400 20px/1.45 var(--serif);color:var(--sub);margin-bottom:20px;max-width:46ch}
+.ours-box{margin-top:22px;border-left:3px solid var(--red);background:var(--red-pale);border-radius:0 12px 12px 0;padding:16px 20px}
+.ours-box h3{font:600 14px var(--sans);color:var(--red);margin-bottom:6px}
+.ours-box p{font-size:15px;margin:0 0 8px}
+.ours-box p:last-child{margin:0}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px;align-items:center}
+.chips .lbl{font-size:13px;color:var(--sub);margin-right:4px}
+.chip{border:1px solid #ffd59a;background:var(--sun-pale);color:#9a4b0d;border-radius:999px;padding:4px 12px;font:500 13px var(--sans);cursor:pointer}
+.chip:hover{background:#ffe7c2}
+.dev{margin-top:18px;font-size:14px;color:var(--sub)}
+.dev summary{cursor:pointer;color:var(--purple);font-weight:500}
+.dev code,.mono{font-family:ui-monospace,Consolas,monospace;font-size:13px;background:var(--purple-pale);padding:1px 5px;border-radius:4px;color:#4c2468;overflow-wrap:anywhere}
+.dev ul{margin:10px 0 0;padding-left:20px}
+.dev li{margin-bottom:6px}
+
+.viz{background:var(--soft);border-radius:20px;padding:24px;position:relative;min-width:0}
+.viz .cap{font-size:13px;color:var(--sub);margin:14px 0 0}
+.toggle{display:inline-flex;background:#fff;border:1px solid var(--line);border-radius:999px;padding:4px;margin-bottom:16px}
+.toggle button{border:0;background:transparent;border-radius:999px;padding:7px 16px;font:500 13px var(--sans);color:var(--sub);cursor:pointer}
+.toggle button[aria-pressed="true"]{background:var(--ink);color:#fff}
+
+.crawl{display:grid;grid-template-columns:150px 1fr;gap:18px;align-items:center}
+.smap{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px 12px 10px;min-height:208px}
+.smap .hd{font:500 12px ui-monospace,Consolas,monospace;color:var(--ink);margin-bottom:8px}
+.smap .ln{height:8px;border-radius:4px;background:#e3d3ee;margin:7px 0;transition:width .5s ease, opacity .5s}
+.smap .cnt{font:500 26px var(--serif);color:var(--ink);margin-top:10px}
+.smap .cnt small{font:12px var(--sans);color:var(--sub);display:block}
+.graph svg{width:100%;height:auto;display:block}
+.graph .edge{stroke:#cfcfcf;stroke-width:1.5}
+.graph .node rect{fill:#fff;stroke:#cfcfcf;stroke-width:1.5;transition:fill .4s,stroke .4s}
+.graph .node text{font:500 10px var(--sans);fill:var(--sub)}
+.graph .node.lit rect{fill:var(--green-pale);stroke:var(--green)}
+.graph .node.miss rect{fill:#fff;stroke:var(--red);stroke-dasharray:4 3}
+.graph .node.miss text{fill:var(--red)}
+.graph #bot{transition:transform .6s cubic-bezier(.6,0,.3,1)}
+
+.page{background:#fff;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.page .chrome{background:#f0f0f0;padding:8px 12px;font:12px ui-monospace,Consolas,monospace;color:var(--sub);display:flex;gap:6px;align-items:center}
+.page .chrome i{width:9px;height:9px;border-radius:50%;background:#d5d5d5;display:inline-block}
+.page .body{padding:14px}
+.anat-state{display:grid;gap:8px}
+.anat-state[hidden]{display:none}
+.tagrow{display:flex;align-items:center;gap:10px;font-size:13px;min-width:0}
+.tag{flex:none;font:500 11px ui-monospace,Consolas,monospace;border-radius:6px;padding:3px 7px;background:var(--purple-pale);color:#4c2468;min-width:84px;text-align:center}
+.tagrow.bad .tag{background:var(--red-pale);color:var(--red)}
+.tagrow.good .tag{background:var(--green-pale);color:var(--green)}
+.tagrow .txt{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tagrow.bad .txt{color:var(--red)}
+
+.who-gets{display:grid;gap:10px}
+.sharebar{display:flex;height:34px;border-radius:8px;overflow:hidden;background:#e9e9e9;font:500 12px var(--sans)}
+.sharebar > span{display:flex;align-items:center;padding:0 10px;color:#fff;white-space:nowrap;overflow:hidden;transition:width .9s ease}
+.sharebar .ar{background:var(--sun-dark)}
+.sharebar .oth{background:#7a7a7a}
+.sharerow{display:grid;grid-template-columns:80px 1fr;gap:10px;align-items:center;font-size:13px;color:var(--sub)}
+.cities{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:14px}
+.city{background:#fff;border-radius:12px;padding:12px;text-align:center;border:1px solid var(--line)}
+.city b{font:500 15px var(--serif);display:block;margin-bottom:4px}
+.dots{position:relative;height:46px}
+.dots i{position:absolute;top:8px;width:30px;height:30px;border-radius:50%;background:var(--sun);opacity:.85;transition:left .8s ease,opacity .8s,transform .8s}
+.city small{font-size:12px;color:var(--sub)}
+
+.query{background:#fff;border:1px solid var(--line);border-radius:999px;padding:8px 16px;font-size:14px;display:inline-flex;gap:8px;align-items:center;flex-wrap:wrap}
+.pages{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:12px}
+.pg{background:#fff;border:1px solid var(--line);border-radius:10px;padding:10px 8px;font-size:12px;text-align:center;line-height:1.3;transition:all .6s}
+.pg .meter{height:6px;border-radius:3px;background:#e9e9e9;margin-top:8px;overflow:hidden}
+.pg .meter i{display:block;height:100%;background:var(--sun);transition:width .8s ease}
+.pg.faded{opacity:.35}
+.pg.winner{border-color:var(--sun);box-shadow:0 0 0 3px rgba(255,152,0,.15)}
+.gaps{margin-top:10px;display:grid;gap:8px}
+.gap{display:grid;grid-template-columns:1fr auto;gap:10px;background:#fff;border-radius:10px;padding:10px 14px;font-size:14px;border:1px dashed #c9c9c9}
+.gap b{font-weight:500}
+.gap span{color:var(--sub);font-size:13px;text-align:right}
+
+.ctr svg{width:100%;height:auto;display:block}
+.ctr .axis{stroke:#cfcfcf}
+.ctr text{font:11px var(--sans);fill:var(--sub)}
+.ctr .curve{fill:none;stroke:var(--sun);stroke-width:3;stroke-linecap:round}
+.ctr .area{fill:url(#ctrgrad)}
+.ctr .pt{fill:var(--red)}
+.ctr .ring{fill:none;stroke:var(--red);stroke-width:2;transform-origin:center;transform-box:fill-box;animation:pulse 2.2s ease-out infinite}
+@keyframes pulse{from{opacity:.9;transform:scale(.6)}to{opacity:0;transform:scale(2.4)}}
+.snips{display:grid;gap:10px;margin-top:16px}
+.snip{background:#fff;border-radius:12px;padding:12px 14px;font-family:Arial,sans-serif;border:1px solid var(--line)}
+.snip .lab{font:500 12px var(--sans);margin:0 0 6px;color:var(--sub)}
+.snip .t{color:#1a0dab;font-size:16px}
+.snip .d{color:#4d5156;font-size:13px}
+.snip .d.empty{color:var(--red);font-style:italic}
+
+.count{display:grid;grid-template-columns:auto 1fr;gap:18px;align-items:center}
+.person{width:64px;height:64px;border-radius:50%;background:var(--sun-pale);display:grid;place-items:center;border:2px solid var(--sun)}
+.tags3{display:grid;gap:8px;margin-top:14px}
+.gtm{display:grid;grid-template-columns:130px 1fr 40px;gap:10px;align-items:center;background:#fff;border-radius:10px;padding:8px 12px;border:1px solid var(--line);font-size:13px}
+.gtm .mono{background:none;padding:0}
+.gtm .pulse{height:6px;border-radius:3px;background:#eee;overflow:hidden}
+.gtm .pulse i{display:block;height:100%;width:0;background:var(--purple);transition:width .6s ease}
+.gtm b{font:500 18px var(--serif);text-align:right}
+.total{margin:12px 0 8px;font-size:14px}
+.total b{font:500 22px var(--serif);color:var(--red)}
+.trend{margin-top:20px;background:#fff;border-radius:12px;padding:14px;border:1px solid var(--line)}
+.trend .bars{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:end;height:120px}
+.trend .b{background:var(--sun);border-radius:8px 8px 0 0;position:relative;transition:height 1s ease;height:0}
+.trend .b.now{background:var(--sun-dark)}
+.trend .b > span{position:absolute;top:-24px;left:0;right:0;text-align:center;font:500 14px var(--serif)}
+.trend .lb{display:grid;grid-template-columns:1fr 1fr;gap:16px;font-size:12px;color:var(--sub);text-align:center;margin-top:6px}
+
+.tasks{padding:88px 0 40px;background:linear-gradient(#fff,var(--soft) 220px)}
+.when{display:grid;grid-template-columns:repeat(8,1fr);gap:8px;margin:28px 0 30px}
+.when button{border:1px solid var(--line);background:#fff;border-radius:12px;padding:10px 8px 8px;text-align:left;cursor:pointer;font:400 12px var(--sans);color:var(--sub)}
+.when button b{display:block;font:500 22px var(--serif);color:var(--ink)}
+.when button[aria-pressed="true"]{border-color:var(--sun);background:var(--sun-pale)}
+.filters{display:flex;flex-wrap:wrap;gap:14px 28px;align-items:center;margin-bottom:22px}
+.filters label{font-size:13px;color:var(--sub);display:flex;gap:8px;align-items:center}
+.filters select,.filters input{font:400 14px var(--sans);border:1px solid var(--line);border-radius:999px;padding:8px 14px;background:#fff;color:var(--ink)}
+.filters .n{margin-left:auto;font-size:14px;color:var(--sub)}
+.list{display:grid;gap:10px}
+.task{background:#fff;border:1px solid var(--line);border-radius:14px;transition:border-color .3s, box-shadow .3s}
+.task[open]{border-color:#ffcf8a;box-shadow:0 10px 30px rgba(60,40,10,.06)}
+.task.flash{animation:flash 1.6s ease}
+@keyframes flash{0%,60%{box-shadow:0 0 0 4px rgba(255,152,0,.45)}100%{box-shadow:none}}
+.task summary{list-style:none;display:grid;grid-template-columns:52px 1fr 170px 52px 20px;gap:14px;align-items:center;padding:14px 18px;cursor:pointer}
+.task summary::-webkit-details-marker{display:none}
+.task .id{font:500 15px var(--serif);color:var(--sun-dark)}
+.task .tt{font-weight:500;font-size:15px}
+.task .st{font-size:12px;color:var(--sub);display:block;font-weight:300}
+.task .ow{font-size:12px;color:var(--sub);line-height:1.3}
+.pri{font:500 12px var(--sans);border-radius:999px;padding:3px 10px;text-align:center}
+.pri.p0{background:var(--red-pale);color:var(--red)}
+.pri.p1{background:var(--sun-pale);color:#9a4b0d}
+.pri.p2{background:#eef1f5;color:#4a5a73}
+.task .chev{transition:transform .3s;color:var(--label);font-size:20px}
+.task[open] .chev{transform:rotate(90deg)}
+.task .more{padding:0 18px 18px 84px;display:grid;grid-template-columns:1.1fr 1fr;gap:24px;font-size:14px}
+.task .more h4{font:600 12px var(--sans);color:var(--label);margin:0 0 4px}
+.task .more p{margin:0 0 12px;overflow-wrap:anywhere}
+.task .why{font:italic 400 16px/1.5 var(--serif);color:var(--ink)}
+.legend{font-size:13px;color:var(--sub);margin:-8px 0 18px}
+
+.gloss{padding:72px 0 88px}
+.terms{display:grid;grid-template-columns:repeat(2,1fr);gap:0 40px;margin-top:26px}
+.terms details{border-bottom:1px solid var(--line);padding:14px 0}
+.terms summary{cursor:pointer;font:500 17px var(--serif);list-style:none;display:flex;justify-content:space-between}
+.terms summary::-webkit-details-marker{display:none}
+.terms summary::after{content:"+";color:var(--sun-dark);font-family:var(--sans)}
+.terms details[open] summary::after{content:"-"}
+.terms p{font-size:15px;color:var(--sub);margin:8px 0 0}
+
+footer{background:#222;color:#cfcfcf;padding:34px 0;font-size:13px}
+footer p{max-width:none;margin:0}
+
+html[lang="es"] .en,html:not([lang="es"]) .es{display:none}
+.lang{margin-left:16px;flex:none;display:inline-flex;border:1px solid var(--line);border-radius:999px;padding:3px;background:#fff}
+.lang button{border:0;background:transparent;border-radius:999px;padding:5px 12px;font:500 13px var(--sans);color:var(--sub);cursor:pointer}
+.lang button[aria-pressed="true"]{background:var(--dawn);color:#fff}
+.hero .wrap > *,.stage .wrap > *,.short .grid > *{min-width:0}
+.serp .u,.serp .typed{overflow-wrap:anywhere}
+.serp .typed{white-space:normal}
+.list > *,.task .more > div,.task summary > *{min-width:0}
+.filters label{flex-wrap:wrap;max-width:100%}
+.filters select,.filters input{max-width:100%;min-width:0}
+.watch{padding:72px 0 8px}
+.video{margin-top:26px;position:relative;width:100%;max-width:960px;aspect-ratio:16/9;border-radius:18px;overflow:hidden;background:#111;box-shadow:0 24px 60px rgba(60,40,10,.14)}
+.video video{position:absolute;inset:0;width:100%;height:100%;background:#000}
+.vfallback{display:none;position:absolute;inset:0;text-decoration:none;background:#222 url(https://i.ytimg.com/vi/tGNohWqmSFs/maxresdefault.jpg) center/cover}
+.video.nofile video{display:none}
+.video.nofile .vfallback{display:block}
+.video-link{display:inline-flex;margin-top:12px;font-size:14px}
+.vfacade{display:block;text-decoration:none}
+.vfacade img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:transform .5s ease}
+.vfacade:hover img{transform:scale(1.02)}
+.vplay{position:absolute;left:50%;top:50%;width:84px;height:84px;margin:-42px 0 0 -42px;border-radius:50%;background:var(--dawn);display:grid;place-items:center;box-shadow:0 10px 30px rgba(0,0,0,.35)}
+.vlabel{position:absolute;left:18px;bottom:16px;background:rgba(0,0,0,.65);color:#fff;font:500 14px var(--sans);padding:6px 14px;border-radius:999px}
+.video-card{margin-top:26px;display:flex;align-items:center;gap:20px;max-width:960px;padding:22px 26px;border-radius:18px;background:#222;color:#fff;text-decoration:none}
+.video-card .play{flex:none;width:64px;height:64px;border-radius:50%;background:var(--dawn);display:grid;place-items:center}
+.video-card b{font:500 22px var(--serif);display:block}
+.video-card span{font-size:14px;color:#cfcfcf}
+@media (max-width:900px){
+  .lang{margin-left:auto}
+  .hero .wrap,.stage .wrap{grid-template-columns:1fr;gap:32px}
+  .short .grid{grid-template-columns:1fr}
+  .rail ol{grid-template-columns:repeat(6,1fr)}
+  .rail li a{font-size:0;padding:12px 2px}
+  .rail li a b{font-size:11px;white-space:nowrap}
+  .rail ol{overflow-x:auto;gap:10px}
+  .smap{min-height:0}
+  .when{grid-template-columns:repeat(4,1fr)}
+  .task summary{grid-template-columns:40px 1fr 20px;padding:14px}
+  .task summary .ow,.task summary .pri{display:none}
+  .task .more{grid-template-columns:1fr;padding-left:14px}
+  .terms{grid-template-columns:1fr}
+  .crawl{grid-template-columns:1fr}
+  .pages{grid-template-columns:repeat(2,1fr)}
+  .top .doc{display:none}
+  .viz{padding:16px}
+  .gtm{grid-template-columns:110px 1fr 30px}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+  html{scroll-behavior:auto}
+}
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap"><svg class="logo" role="img" aria-label="Art of Living" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="115" height="45" viewBox="0 0 115 45">
+    <defs>
+        <path id="prefix__a" d="M0.016 0.189L13.226 0.189 13.226 8.551 0.016 8.551z"/>
+        <path id="prefix__d" d="M0.023 0.295L115.12 0.295 115.12 16.483 0.023 16.483z"/>
+        <linearGradient id="prefix__c" x1="50.03%" x2="50.03%" y1="97.018%" y2=".139%">
+            <stop offset="0%" stop-color="#F7EB32"/>
+            <stop offset="100%" stop-color="#E26A2D"/>
+        </linearGradient>
+    </defs>
+    <g fill="none" fill-rule="evenodd">
+        <g>
+            <path fill="#000" d="M30.906 41.062c-.035.102-.06.195-.06.26 0 .093.06.12.316.12h1.228c.216 0 .277-.027.29-.102 0-.019.011 0-.074-.228l-.903-2.235-.797 2.185zm-.796 2.553c-.071.237-.12.458-.12.566 0 .228.168.325.616.34.36.01.495.074.495.214 0 .119-.11.183-.327.183h-.132l-.36-.022h-.172c-.263-.014-.518-.028-.71-.028-.301 0-.591.014-.882.028-.094.01-.119.01-.24.01-.13 0-.204-.058-.204-.195 0-.132.097-.18.374-.205.53-.047.614-.12.89-.711.23-.496.447-1.016.929-2.27.362-.933.411-1.04.881-2.323l.24-.651.254-.653c.135-.372.241-.638.253-.704.182-.516.205-.551.352-.551.13 0 .178.071.373.64.12.337.24.663.371.98l2.014 4.905c.52 1.24.555 1.29 1.242 1.388.109.012.181.1.181.18 0 .118-.095.182-.277.182-.047 0-.156-.011-.254-.011-.289-.025-.83-.053-1.263-.053-.436 0-.472 0-1.34.064-.034.013-.133.013-.191.013-.183 0-.268-.049-.268-.166 0-.147.121-.21.47-.244.327-.025.47-.112.46-.28-.012-.093-.035-.229-.097-.396l-.555-1.55c-.145-.374-.157-.384-.53-.384h-1.556c-.372 0-.372 0-.482.325l-.435 1.379zM39.6 40.184c0 .469.015.469.655.469 1.169 0 1.735-.532 1.735-1.63 0-1.135-.687-1.848-1.773-1.848-.504 0-.616.141-.616.834v2.175zM37.458 36.8c.096 0 .013 0 .483.023.35.027.565.027.904.027.373 0 .747-.015 1.17-.027.397-.012.82-.023.939-.023 1.555 0 2.498.774 2.498 2.029 0 1.054-.58 1.682-1.774 1.947.252.155.398.325.627.723l1.242 2.212c.434.786.447.786 1.145.87.097.015.18.096.18.185 0 .103-.07.166-.18.166-.073 0-.12 0-.194-.013-.036 0-.3-.011-.688-.022-.118-.014-.19-.014-.228-.014l-.82.025c-.192 0-.264-.06-.433-.377l-1.544-2.935c-.303-.555-.373-.603-.916-.603-.23 0-.267.036-.267.292v2.33c0 .726.112.882.654.916.362.026.457.073.457.22 0 .132-.074.181-.266.181h-.07c-.084 0-.014 0-.483-.024-.398-.011-.735-.025-1-.025-.304 0-.496.014-1.293.036-.047.013-.082.013-.143.013h-.07c-.195 0-.268-.049-.268-.18 0-.148.096-.195.46-.22.529-.035.638-.19.638-.916v-5.499c0-.726-.109-.882-.639-.922-.363-.019-.459-.067-.459-.213 0-.132.073-.182.268-.182h.07zM56.196 40.58c0 2.273 1.324 4.109 2.962 4.109 1.558 0 2.75-1.666 2.75-3.856 0-2.162-1.281-3.794-2.978-3.794-1.626 0-2.734 1.438-2.734 3.54m7.257.172c0 2.32-2.003 4.263-4.388 4.263-2.438 0-4.413-1.862-4.413-4.145 0-2.356 1.929-4.155 4.435-4.155 2.425 0 4.366 1.789 4.366 4.037M13.79 40.352c.446 0 .469-.026.469-.403v-1.833c0-.726-.11-.88-.638-.922-.363-.019-.459-.067-.459-.213 0-.132.075-.182.265-.182.06 0 .253.011.557.023.42.027.589.027 1.047.027.266 0 .53-.015.903-.027.292-.012.483-.023.556-.023.192 0 .264.05.264.182 0 .146-.096.194-.456.213-.544.041-.653.196-.653.922v5.499c0 .725.11.88.653.915.36.026.456.073.456.22 0 .132-.072.181-.264.181h-.073c-.095 0-.01 0-.483-.024-.408-.011-.673-.025-.987-.025-.398 0-.471 0-1.315.036-.036.013-.083.013-.133.013h-.072c-.19 0-.265-.049-.265-.18 0-.148.096-.195.459-.22.528-.035.638-.19.638-.916v-2.503c0-.3-.037-.327-.422-.327h-2.724c-.483 0-.496.015-.496.303v2.527c0 .725.11.88.639.915.364.026.46.073.46.22 0 .132-.074.181-.266.181-.06 0-.252-.013-.54-.024-.425-.025-.605-.025-1.038-.025-.29 0-.544.014-.917.025-.29.01-.484.024-.555.024-.193 0-.267-.049-.267-.18 0-.148.099-.195.46-.22.53-.035.64-.19.64-.916v-5.499c0-.726-.11-.88-.64-.922-.361-.019-.46-.067-.46-.213 0-.132.074-.182.267-.182h.07c.098 0 .013 0 .485.023.311.012.72.027.94.027.446 0 .495 0 1.35-.039.036-.011.085-.011.133-.011h.072c.192 0 .265.05.265.182 0 .146-.095.194-.459.213-.53.041-.64.196-.64.922v1.833c0 .403 0 .403.426.403h2.748M18.697 38.116c0-.726-.11-.896-.639-.922-.363-.019-.458-.067-.458-.214 0-.131.072-.181.264-.181.023 0 .135 0 .205.011.133 0 .254 0 .35.012.133.012.229.012.278.012h3.652c.288 0 .555-.012.795-.024.11-.011.229-.011.278-.011.145 0 .169.05.169.376v1.193c0 .16-.049.232-.145.232-.083 0-.158-.072-.228-.232-.325-.676-.447-.808-.881-.978-.35-.129-.93-.203-1.544-.203-.65 0-.71.074-.71.796v1.942c0 .463.06.514.663.514 1.314 0 1.567-.135 1.855-.986.036-.132.099-.19.181-.19.11 0 .145.048.145.18 0 .01-.012.157-.023.34l-.011.27-.025.273-.013.266c-.012.193-.024.338-.024.353l.048.976c.014.135-.059.23-.156.23-.122 0-.194-.095-.253-.316-.231-.88-.471-1.034-1.592-1.034-.772 0-.795.01-.795.382v2.275c0 .882.23 1.063 1.29 1.063 1.18 0 1.506-.219 2.156-1.477.062-.097.122-.152.206-.152.086 0 .144.08.144.18 0 .096-.024.287-.07.48-.038.183-.061.426-.087.714-.047.652-.01.63-.627.63h-4.398c-.05 0-.145 0-.279.01-.095.012-.216.012-.349.012-.07.013-.182.013-.205.013-.192 0-.264-.049-.264-.18 0-.148.095-.195.458-.22.529-.035.639-.19.639-.916v-5.499M48.746 43.615c0 .725.11.88.653.915.362.026.458.073.458.22 0 .132-.072.181-.278.181-.072 0-.192 0-.541-.024-.397-.025-.748-.04-1.05-.04-.169 0-.567.015-.905.04-.348.024-.469.024-.542.024-.204 0-.277-.049-.277-.18 0-.148.097-.195.457-.22.532-.035.64-.19.64-.916V37.56c0-.278-.072-.35-.313-.35-.809 0-1.168.06-1.447.24-.278.18-.713.666-.892 1.004-.109.205-.17.253-.277.268-.096.01-.181-.073-.181-.157 0-.063.013-.122.036-.208l.53-1.835c.048-.182.098-.23.194-.23.083 0 .12.034.157.18.06.277.18.362.566.362h4.172c.493 0 1.011-.045 1.204-.098.134-.044.229-.142.291-.313.047-.131.097-.18.18-.18.132 0 .194.147.179.372l-.008.16-.087 1.582c-.012.292-.072.398-.206.398-.12 0-.17-.072-.204-.278-.181-.99-.518-1.257-1.591-1.257-.954 0-.918-.026-.918.461v5.934M74.45 44.896c-.049 0-.15 0-.282.01-.096.012-.215.012-.346.012-.073.013-.18.013-.205.013-.192 0-.27-.049-.27-.18 0-.148.098-.195.461-.22.532-.035.641-.19.641-.916v-5.499c0-.726-.109-.882-.64-.922-.364-.019-.461-.067-.461-.214 0-.131.077-.181.27-.181.08 0 .229.011.55.023.447.027.76.04 1.052.04.158 0 .532-.013.904-.04.325-.012.47-.023.554-.023.196 0 .265.05.265.181 0 .147-.095.195-.457.214-.542.04-.652.196-.652.922v5.157c0 .945.267 1.257 1.049 1.257 1.002 0 1.7-.447 2.218-1.429.06-.113.111-.154.196-.154.096 0 .158.076.158.205 0 .065-.014.184-.04.306-.087.422-.109.615-.145 1.16-.023.23-.083.3-.31.3-.037 0-.124 0-.208-.011-.082-.011-.18-.011-.29-.011h-4.013M82.48 43.615c0 .725.107.88.65.915.363.026.454.073.454.22 0 .132-.069.181-.265.181h-.07c-.098 0-.012 0-.482-.024-.338-.011-.723-.025-1.002-.025-.337 0-.55.014-1.288.036-.05.013-.085.013-.144.013h-.071c-.194 0-.268-.049-.268-.18 0-.148.097-.195.458-.22.528-.035.643-.19.643-.916v-5.499c0-.726-.115-.882-.643-.922-.36-.019-.458-.067-.458-.214 0-.131.074-.181.268-.181h.071c.094 0 .011 0 .481.023.42.012.664.027 1.027.027.335 0 .455 0 1.264-.039.046-.011.087-.011.143-.011h.07c.197 0 .266.05.266.181 0 .147-.091.195-.455.214-.542.04-.65.196-.65.922v5.499M90.425 38.297c.108-.266.178-.545.178-.688 0-.267-.19-.415-.529-.422-.45-.012-.555-.051-.555-.194 0-.13.09-.194.3-.194.05 0 .229.011.386.023.275.012.533.027.772.027.253 0 .481-.015.7-.039.18-.011.327-.021.453-.021.138 0 .21.06.21.168 0 .155-.023.155-.556.237-.326.053-.478.281-.844 1.174l-2.593 6.467c-.056.143-.142.241-.226.241-.088 0-.159-.084-.23-.268l-2.832-6.777c-.28-.689-.41-.82-.848-.856-.336-.04-.404-.074-.404-.206 0-.106.068-.17.191-.17h.117c.535.023-.13 0 2.026.072.03 0 .233-.008.511-.037.19-.024.436-.035.517-.035.195 0 .274.064.274.17 0 .158 0 .158-.527.206-.289.035-.486.141-.471.3 0 .085.058.256.168.495l2.06 4.82 1.752-4.493" transform="translate(-662 -50) translate(662 49.246)"/>
+            <g transform="translate(-662 -50) translate(662 49.246) translate(92.556 36.61)">
+                <mask id="prefix__b" fill="#fff">
+                    <use xlink:href="#prefix__a"/>
+                </mask>
+                <path fill="#000" d="M2.496 7.005c0 .725.11.881.652.915.36.026.456.073.456.22 0 .132-.07.181-.262.181h-.07c-.098 0-.019 0-.487-.024-.335-.01-.725-.025-1-.025-.336 0-.558.014-1.291.036-.047.013-.084.013-.14.013H.278c-.189 0-.262-.049-.262-.18 0-.148.096-.195.456-.22.53-.035.636-.19.636-.916V1.506c0-.726-.106-.882-.636-.922C.112.566.016.517.016.37.016.24.09.19.278.19h.076c.093 0 .01 0 .479.023.424.012.661.027 1.022.027.342 0 .46 0 1.268-.038.05-.012.083-.012.148-.012h.07c.193 0 .263.05.263.181 0 .147-.095.196-.456.214-.542.04-.652.196-.652.922v5.499M11.528 2.204C11.5.82 11.432.638 10.855.61 10.38.584 10.26.54 10.26.395c0-.123.113-.183.302-.183.039 0 .168.012.294.012.249.029.55.037.912.037.324 0 .628-.008.856-.022.146-.015.3-.027.362-.027.158 0 .242.06.242.183 0 .156-.11.206-.508.243-.564.047-.66.157-.66.795l.032 6.766c0 .268-.059.375-.228.375-.11 0-.226-.097-.408-.316L5.97 1.373l.048 4.48c.024 1.96.047 2.01 1.106 2.093.148 0 .23.073.23.18 0 .118-.098.182-.289.182-.048 0-.23-.011-.387-.022-.264-.014-.517-.028-.759-.028-.312 0-.613.014-.914.05-.194.025-.409.038-.484.038-.144 0-.23-.06-.23-.172 0-.142.036-.166.59-.238.604-.073.627-.16.627-1.936V1.7c0-.968-.083-1.116-.663-1.122-.372 0-.482-.05-.482-.194 0-.131.101-.183.363-.183l1.145.038.833-.027c.217 0 .217 0 .482.366l4.386 5.63-.045-4.004" mask="url(#prefix__b)"/>
+            </g>
+            <path fill="#000" d="M112.472 42.09c0-.582-.18-.76-.808-.768-.408-.014-.506-.065-.506-.222 0-.108.073-.155.253-.155.023 0 .203.01.323.01.642.028 1.137.037 1.68.037.323 0 .65-.01.889-.037.217-.01.436-.025.507-.025.132 0 .205.053.205.143.014.145-.097.2-.472.22-.503.037-.647.17-.647.607 0 .07.01.43.034.83 0 .205.013.498.013.703 0 .688 0 .688-.191.82-.653.448-1.846.76-2.918.76-1.353 0-2.446-.395-3.245-1.18-.734-.732-1.204-1.864-1.204-2.914 0-1.255.676-2.5 1.768-3.274.88-.616 1.981-.93 3.294-.93.786 0 1.82.202 2.012.397.087.082.087.098.17.595.075.434.095.613.095.736 0 .122-.06.206-.158.215-.093.013-.189-.082-.299-.301-.495-.907-1.147-1.319-2.132-1.319-1.69 0-3.126 1.8-3.126 3.917 0 2.138 1.34 3.734 3.137 3.734.518 0 .953-.133 1.122-.338.121-.17.204-.609.204-1.147V42.09M64.793 38.116c0-.726-.113-.882-.64-.922-.364-.019-.458-.067-.458-.214 0-.131.069-.181.265-.181.026 0 .132 0 .205.011.132 0 .253 0 .347.012.134.012.228.012.28.012h3.605c.169 0 .358 0 .553-.012.196-.012.41-.023.462-.023.19 0 .226.035.226.23v1.377c0 .16-.046.253-.143.253-.15 0-.16-.02-.425-.628-.24-.58-.913-.82-2.243-.82-.531 0-.647.12-.647.677v1.75c0 .81-.062.758 1.083.758.785 0 1.083-.213 1.303-.952.048-.143.11-.204.206-.204.106 0 .153.06.153.204l-.047 1.39c0 .206 0 .292.026.52.022.28.046.557.046.626 0 .15-.06.219-.156.219-.084 0-.146-.06-.194-.157-.009-.038.014.036-.06-.219l-.033-.155-.05-.17c-.133-.48-.533-.687-1.362-.687-.915 0-.915 0-.915.588v2.216c0 .725.116.89.647.915.395.026.484.065.484.22 0 .132-.073.181-.267.181h-.07c-.096 0-.012 0-.484-.024-.333-.011-.723-.025-1-.025-.36 0-.565.014-1.311.036-.052.013-.087.013-.146.013h-.073c-.196 0-.265-.049-.265-.18 0-.148.094-.195.457-.22.528-.035.64-.19.64-.916v-5.499M4.603 43.629c0 .724.107.882.651.917.362.026.457.077.457.219 0 .131-.073.18-.277.18-.072 0-.193 0-.542-.02-.398-.029-.749-.038-1.05-.038-.169 0-.568.009-.902.038-.352.02-.472.02-.543.02-.206 0-.278-.049-.278-.18 0-.142.096-.193.457-.219.532-.035.64-.193.64-.917v-6.053c0-.276-.073-.35-.315-.35-.807 0-1.168.06-1.447.242-.277.18-.71.663-.89 1.002-.11.204-.169.254-.279.267-.095.012-.18-.074-.18-.157 0-.06.011-.122.037-.206l.528-1.837c.05-.182.098-.23.193-.23.086 0 .122.037.159.18.06.278.182.364.567.364h4.17c.495 0 1.013-.047 1.207-.098.132-.046.227-.144.288-.313.049-.133.096-.181.181-.181.134 0 .193.144.182.377l-.013.154-.085 1.584c-.01.29-.07.4-.204.4-.122 0-.17-.073-.204-.28-.183-.991-.521-1.255-1.592-1.255-.954 0-.916-.026-.916.458v5.932" transform="translate(-662 -50) translate(662 49.246)"/>
+            <path fill="#6F8F9D" d="M39.79 22.601c-.227.664-.417 1.344-.57 2.042M39.604 24.728l-.768-.17c.153-.7.349-1.401.581-2.084l.745.255c-.223.654-.41 1.327-.558 1.999" transform="translate(-662 -50) translate(662 49.246)"/>
+            <path fill="#1A1919" d="M38.747 28.711c0 1.135.162 2.63.368 3.684h37.041c.194-1.028.279-2.482.279-3.684 0-10.55-8.456-19.137-18.845-19.137-10.387 0-18.843 8.588-18.843 19.137" transform="translate(-662 -50) translate(662 49.246)"/>
+            <path fill="url(#prefix__c)" d="M38.747 28.711c0 1.135.162 2.63.368 3.684h37.041c.194-1.028.279-2.482.279-3.684 0-10.55-8.456-19.137-18.845-19.137-10.387 0-18.843 8.588-18.843 19.137" transform="translate(-662 -50) translate(662 49.246)"/>
+            <path fill="#000" d="M76.478 32.518l-.773-.149c.23-1.2.347-2.424.347-3.639 0-10.339-8.277-18.75-18.45-18.75-10.174 0-18.45 8.411-18.45 18.75 0 1.216.116 2.438.346 3.632l-.773.149c-.239-1.243-.36-2.515-.36-3.781 0-10.774 8.63-19.538 19.236-19.538 10.608 0 19.238 8.764 19.238 19.538 0 1.265-.121 2.54-.36 3.788" transform="translate(-662 -50) translate(662 49.246)"/>
+            <path fill="#000" d="M57.209 9.586L57.996 9.586 57.996 1.083 57.209 1.083zM52.972 10.169L51.08 1.863 51.847 1.688 53.739 9.994 52.972 10.169M48.981 11.694L45.28 3.99 45.989 3.648 49.69 11.352 48.981 11.694M45.451 14.087L40.095 7.36 40.711 6.868 46.066 13.595 45.451 14.087M42.551 17.203L35.79 11.796 36.281 11.179 43.042 16.586 42.551 17.203M40.408 20.869L32.577 17.087 32.919 16.377 40.75 20.158 40.408 20.869M39.133 24.904L30.62 22.961 30.795 22.192 39.307 24.135 39.133 24.904M30.018 29.125L38.758 29.125 38.758 28.336 30.018 28.336zM76.445 29.125L85.183 29.125 85.183 28.336 76.445 28.336zM76.069 24.904L75.894 24.135 84.404 22.192 84.579 22.961 76.069 24.904M74.793 20.869L74.452 20.158 82.281 16.38 82.623 17.091 74.793 20.869M72.65 17.203L72.159 16.586 78.921 11.183 79.412 11.8 72.65 17.203M69.751 14.087L69.136 13.595 74.49 6.868 75.106 7.36 69.751 14.087M66.216 11.695L65.508 11.352 69.214 3.65 69.923 3.993 66.216 11.695M62.231 10.169L61.464 9.994 63.352 1.688 64.12 1.863 62.231 10.169M34.238 31.762L34.15 30.978 38.831 30.448 38.919 31.232 34.238 31.762M76.375 27.003L76.288 26.219 80.963 25.692 81.051 26.477 76.375 27.003M75.545 22.852L75.284 22.107 79.701 20.556 79.961 21.3 75.545 22.852M73.826 18.976L73.407 18.308 77.334 15.835 77.752 16.503 73.826 18.976M71.295 15.559L70.738 15.001 73.974 11.754 74.531 12.312 71.295 15.559M68.053 12.79L67.386 12.37 69.797 8.525 70.464 8.945 68.053 12.79M64.269 10.813L63.526 10.553 65.005 6.317 65.748 6.577 64.269 10.813M60.125 9.755L59.343 9.666 59.845 5.222 60.628 5.311 60.125 9.755M55.071 9.755L54.572 5.311 55.354 5.222 55.853 9.667 55.071 9.755M50.929 10.817L49.45 6.577 50.193 6.317 51.672 10.556 50.929 10.817M47.147 12.799L44.733 8.945 45.4 8.526 47.813 12.38 47.147 12.799M43.911 15.565L40.665 12.312 41.221 11.754 44.467 15.006 43.911 15.565M41.377 18.978L37.445 16.503 37.864 15.835 41.796 18.31 41.377 18.978M39.66 22.853L35.234 21.305 35.493 20.56 39.92 22.108 39.66 22.853M80.959 31.762L76.288 31.234 76.375 30.45 81.047 30.978 80.959 31.762M38.831 27.003L34.146 26.477 34.233 25.692 38.918 26.219 38.831 27.003M23.927 20.724c.104.024.5-.324.564-.556.069-.25-.012-.482-.117-.668-.11-.185-.425-.584-.49-.713-.07-.13-.16-.331-.14-.362.019-.03 1.238-.34-.498-2.008-.497-.478-1.5-1.288-2.593-1.664-1.044-.355-1.811-.34-2.09-.327-.124 0-.092.154-.045.152.013 0 1.913.182 3.378 1.323 1.41 1.094 1.475 1.543 1.398 1.684-.058.104-.285.09-.463.017-.233-.103-.436-.21-.404-.266.023-.035.148-.222.068-.412-.078-.176-.257-.247-.413-.212-.223.047-.296.233-.292.348.01.307.297.307.293.372-.003.04-.088.63-.408.634-.579.01-1.51-.796-1.7-.955-.993-.826-2.515-.92-3.316-.182-.86.799-.729 1.909-.264 2.553.373.526.655.773.79.86.045.027.123.058.075-.037-.037-.073-.646-.776-.621-1.696.012-.446.198-.847.475-1.085.202-.176.702-.593 1.592-.41.45.091.952.347 1.479.772.68.548 1.725.756 2.432 1.43.293.276.628.565.708.653.075.088.54.5.59.599l.012.156M5.268 24.737c.297.215 1.025.93 1.05.955.027.027.752-.214 1.006-.27.327-.08 1.51-.286 1.529-.271.017.011-.142.235-.225.36-.08.135-.16.303-.194.376-.032.068-.032.045-.173.075-.142.03-.218.05-.548.117-.33.062-1.256.386-1.301.395-.044.007-.113-.098-.51-.35-.396-.247-.6-.289-.678-.304-.078-.011.09 1.534.213 2.156.123.617.262 1.132.669 2.237.411 1.104 1.002 2.183 1.002 2.183h15.394s2.3-3.049 2.643-4.868c.293-1.566-2.042-3.176-2.378-3.397-.104-.07-.047-.115.018-.083.013.007 3.141 1.382 3.045 3.622-.233 2.526-2.318 5.091-2.318 5.091H6.457c-.023-.014-.11-.197-.22-.43-.112-.226-.544-1.018-.795-1.577-.254-.558-.626-1.494-.808-1.98-.183-.476-.483-1.562-.63-2.216-.143-.659-.226-1.56-.26-2.044-.032-.482-.002-.606.011-.623.037-.031.295.09.547.228 0 0 .61.358.966.618" transform="translate(-662 -50) translate(662 49.246)"/>
+            <path fill="#000" d="M5.318 17.66c.1-.446.238-.665.238-.665s3.517-.043 7.101 2.992c3.583 3.034 4.626 5.39 4.516 5.448-.109.05-1.029-2.035-4.923-4.896-3.895-2.859-7.032-2.118-7.032-2.118s.006-.34.1-.76" transform="translate(-662 -50) translate(662 49.246)"/>
+            <path fill="#000" d="M5.15 20.602c-.03-.39.014-.589.014-.589s1.328-.092 2.635.135c1.853.322 3.971 1.707 3.971 1.707l-.372.341s-2.325-.768-3.745-.916c-1.42-.148-2.404-.04-2.404-.04s-.071-.235-.1-.638M5.758 23.65c-.152-.46-.177-.697-.177-.697s1.197-.097 2.193-.025c.997.068 2.465.365 2.465.365l-.325.4s-1.326.093-2.11.221c-.786.13-1.782.46-1.782.46s-.105-.243-.264-.723M22.953 18.349s-.165.014-.336.063c-.17.047-.345.117-.345.117s.553.448.723.615c.17.166.65.64.67.669.006.004.187-.123.086-.278-.104-.15-.32-.44-.494-.672-.116-.15-.304-.514-.304-.514M20.627 25.038c-1.375-.873-2.215-1.446-4.443-3.045-2.966-2.123-2.073-4.823-1.86-5.29h.003c.057-.085.193.009.163.093-.176.48-.8 2.946 2.236 4.886 3.035 1.944 3.628 2.3 4.582 2.89 1.404.869 1.421 1.713 1.328 2.4-.089.634-.432 1.2-.481 1.28-.044.069-.583-.485-1.395-1-.872-.553-2.016-1.007-2.054-1.026-.145-.064-.092-.098-.029-.107.072-.001.991.034 1.756.243.797.22 1.269.515 1.287.484 0 0 .538-.771-1.093-1.808M91.276 20.692c-.105.022-.497-.327-.561-.558-.07-.252.008-.482.118-.67.108-.183.422-.587.49-.71.067-.132.157-.334.136-.364-.02-.027-1.236-.34.501-2.01.491-.477 1.5-1.283 2.589-1.66 1.048-.358 1.815-.341 2.09-.329.126.007.094.155.046.155-.013 0-1.914.178-3.376 1.32-1.41 1.095-1.48 1.542-1.399 1.682.06.105.286.092.46.016.236-.096.439-.202.403-.26-.021-.039-.142-.223-.06-.414.074-.178.253-.245.409-.214.22.048.298.234.291.346-.008.309-.295.309-.291.376 0 .04.088.63.403.635.58.012 1.513-.797 1.706-.958.988-.824 2.513-.916 3.313-.18.86.795.728 1.91.265 2.556-.376.518-.655.773-.79.854-.045.03-.12.06-.077-.034.04-.072.648-.78.62-1.696-.009-.443-.197-.847-.467-1.084-.208-.176-.71-.592-1.597-.41-.45.092-.95.346-1.478.77-.678.548-1.726.756-2.432 1.43-.295.273-.628.567-.71.653-.075.088-.538.502-.59.6l-.011.158M109.937 24.702c-.3.216-1.026.932-1.051.953-.026.025-.749-.206-1.004-.267-.329-.079-1.51-.283-1.53-.27-.017.015.138.23.224.362.08.13.158.3.193.37.031.073.031.049.175.08.142.027.216.048.545.115.33.062 1.26.386 1.302.393.046.005.115-.096.512-.345.397-.254.597-.29.677-.306.076-.013-.091 1.536-.217 2.152-.118.62-.257 1.134-.666 2.24-.408 1.105-.998 2.182-.998 2.182H92.702s-2.3-3.051-2.64-4.863c-.296-1.568 2.038-3.178 2.375-3.4.105-.072.044-.117-.018-.082-.012.004-3.142 1.381-3.045 3.622.232 2.519 2.32 5.086 2.32 5.086h17.055c.022-.01.104-.196.219-.426.11-.227.545-1.016.795-1.58.251-.561.626-1.49.81-1.976.181-.48.484-1.564.628-2.22.141-.654.225-1.555.258-2.039.034-.481.007-.608-.011-.623-.037-.033-.293.085-.546.223 0 0-.607.359-.965.62" transform="translate(-662 -50) translate(662 49.246)"/>
+            <path fill="#000" d="M109.884 17.622c-.098-.441-.237-.663-.237-.663s-3.517-.044-7.1 2.993c-3.581 3.035-4.624 5.39-4.518 5.445.11.054 1.028-2.032 4.925-4.89 3.9-2.861 7.031-2.12 7.031-2.12s-.005-.34-.1-.765" transform="translate(-662 -50) translate(662 49.246)"/>
+            <path fill="#000" d="M110.056 20.568c.028-.387-.014-.588-.014-.588s-1.33-.098-2.637.132c-1.855.324-3.967 1.71-3.967 1.71l.37.342s2.32-.77 3.743-.919c1.421-.149 2.407-.04 2.407-.04s.07-.232.098-.637M109.444 23.617c.153-.461.181-.694.181-.694s-1.198-.101-2.197-.03c-.993.067-2.462.366-2.462.366l.328.398s1.321.092 2.107.222c.784.13 1.781.462 1.781.462s.107-.243.262-.724M92.25 18.315s.164.014.338.062c.169.05.344.12.344.12s-.552.442-.725.611c-.168.173-.65.642-.672.668 0 .007-.185-.124-.081-.273.103-.153.316-.44.493-.672.114-.154.303-.516.303-.516" transform="translate(-662 -50) translate(662 49.246)"/>
+            <g transform="translate(-662 -50) translate(662 49.246) translate(0 16.343)">
+                <mask id="prefix__e" fill="#fff">
+                    <use xlink:href="#prefix__d"/>
+                </mask>
+                <path fill="#000" d="M94.575 8.658c1.372-.873 2.218-1.442 4.446-3.04 2.966-2.122 2.071-4.823 1.86-5.29-.062-.083-.197.006-.167.092.17.478.798 2.946-2.231 4.886-3.044 1.94-3.633 2.3-4.585 2.89-1.404.87-1.424 1.713-1.326 2.4.087.632.43 1.198.477 1.277.043.07.58-.485 1.393-1 .877-.551 2.015-1.011 2.056-1.024.15-.061.091-.098.027-.104-.073-.004-.992.032-1.754.24-.794.219-1.266.512-1.287.487 0 0-.534-.776 1.091-1.814M.023 16.483L115.12 16.483 115.12 15.856.023 15.856z" mask="url(#prefix__e)"/>
+            </g>
+        </g>
+    </g>
+</svg>
+<div class="doc">El Arte de Vivir Argentina<br><span class="en">SEO explainer, 1 November 2026</span><span class="es" lang="es">Guía de SEO, 1 de noviembre de 2026</span></div><div class="lang" role="group" aria-label="Language / Idioma"><button type="button" data-lang="en" aria-pressed="true">English</button><button type="button" data-lang="es" aria-pressed="false">Español</button></div></div></header>
+
+<section class="hero">
+  <div class="wrap">
+    <div>
+      <h1><span class="en">How a seeker in Argentina finds us, and where we lose them</span><span class="es" lang="es">Cómo nos encuentra quien busca en Argentina, y dónde lo perdemos</span></h1>
+      <p class="lead"><span class="en">Search engine optimisation (SEO) is not a trick. It is making sure that when someone searches for a breathing course, a meditation class or a center near them, Google can find our page, understand it, trust it and show it well. This page explains each step using what we found on artofliving.org/ar-es/, and maps all 39 tasks in our tracker to the step they fix.</span><span class="es" lang="es">El posicionamiento en buscadores (SEO) no es un truco. Es asegurarnos de que, cuando alguien busca un curso de respiración, una clase de meditación o un centro cerca de su casa, Google pueda encontrar nuestra página, entenderla, confiar en ella y mostrarla bien. Esta página explica cada paso con lo que encontramos en artofliving.org/ar-es/ y ubica las 39 tareas de nuestro plan en el paso que resuelven.</span></p>
+      <div class="ctas">
+        <a class="btn" href="#discover"><span class="en">Walk through the six steps</span><span class="es" lang="es">Recorrer los seis pasos</span></a>
+        <a class="btn ghost" href="#tasks"><span class="en">Go to the 39 tasks</span><span class="es" lang="es">Ir a las 39 tareas</span></a>
+      </div>
+      <div class="who"><span><span class="en">Leadership: read the bold lines and the red boxes</span><span class="es" lang="es">Dirección: lean las frases en negrita y los recuadros rojos</span></span><span><span class="en">Developers: open "Technical detail" in each step</span><span class="es" lang="es">Desarrolladores: abran "Detalle técnico" en cada paso</span></span></div>
+    </div>
+    <div class="serp" aria-label="Google search illustration">
+      <div class="bar"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10" cy="10" r="6.5" fill="none" stroke="#9aa0a6" stroke-width="2"/><path d="M15 15l5 5" stroke="#9aa0a6" stroke-width="2" stroke-linecap="round"/></svg><span class="typed" id="typed"></span><span class="caret"></span></div>
+      <div class="loc"><span class="en">Searching from Buenos Aires</span><span class="es" lang="es">Buscando desde Buenos Aires</span></div>
+      <div class="res" data-r>
+        <div class="u">www.artofliving.org › us-en</div>
+        <div class="t">SKY Breath Meditation | Art of Living</div>
+        <div class="d"><span class="en">Our US page, in English, shown to a searcher in Argentina.</span><span class="es" lang="es">Nuestra página de Estados Unidos, en inglés, mostrada a alguien que busca desde Argentina.</span></div>
+      </div>
+      <div class="res" data-r>
+        <div class="u">another-school.com.ar</div>
+        <div class="t">Curso de respiración en Buenos Aires</div>
+        <div class="d">Clases presenciales y online. Próximas fechas y precios.</div>
+      </div>
+      <div class="res ours" data-r>
+        <span class="pill"><span class="en">Our Argentina page</span><span class="es" lang="es">Nuestra página de Argentina</span></span>
+        <div class="u">www.artofliving.org › ar-es › courses › art-of-living-part-one</div>
+        <div class="t">El Arte de Vivir Parte 1</div>
+        <div class="d"><span class="en">No H1, dates invisible to Google, missing from the sitemap.</span><span class="es" lang="es">Sin H1, fechas invisibles para Google, ausente del sitemap.</span></div>
+      </div>
+      <div class="note"><span class="en">An illustration of the problems the audit found, not a captured results page.</span><span class="es" lang="es">Una ilustración de los problemas que encontró la auditoría, no una captura real de resultados.</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="short">
+  <div class="wrap">
+    <h2><span class="en">The short version</span><span class="es" lang="es">En pocas palabras</span></h2>
+    <p class="lead" style="margin-top:12px"><span class="en">Three numbers explain most of the audit. The rest of the tracker follows from them.</span><span class="es" lang="es">Tres números explican casi toda la auditoría. El resto del plan se desprende de ellos.</span></p>
+    <div class="grid">
+      <div class="fact red"><div class="n"><span class="en">103 of 120</span><span class="es" lang="es">103 de 120</span></div><p><span class="en"><b>Sitemaps are failing.</b> A sitemap is the list of pages we hand to Google. Since late October it is empty for the whole site, so Google is not being told about our pages.</span><span class="es" lang="es"><b>Los sitemaps están fallando.</b> Un sitemap es la lista de páginas que le entregamos a Google. Desde fines de octubre está vacío en todo el sitio, así que Google no se entera de nuestras páginas.</span></p></div>
+      <div class="fact"><div class="n">-21%</div><p><span class="en"><b>Clicks from Argentina fell in 28 days</b>, from 1,451 to 1,143. The cause is not confirmed yet; the sitemap outage started in the same window.</span><span class="es" lang="es"><b>Los clics desde Argentina cayeron en 28 días</b>, de 1.451 a 1.143. La causa todavía no está confirmada; la falla de los sitemaps empezó en el mismo período.</span></p></div>
+      <div class="fact purple"><div class="n"><span class="en">0.35%</span><span class="es" lang="es">0,35%</span></div><p><span class="en"><b>Ranking is not enough.</b> SKY Campus sits at position 2 on Google, yet almost nobody clicks, because its result shows only "Sky Campus" and no description.</span><span class="es" lang="es"><b>Posicionar no alcanza.</b> SKY Campus está en el puesto 2 de Google, pero casi nadie hace clic, porque su resultado solo dice "Sky Campus" y no tiene descripción.</span></p></div>
+    </div>
+  </div>
+</section>
+
+<section class="watch" id="video">
+  <div class="wrap">
+    <h2><span class="en">Watch it in five minutes</span><span class="es" lang="es">Mírenlo en cinco minutos</span></h2>
+    <p class="lead" style="margin-top:12px"><span class="en">Lucía, a fictional searcher in Rosario, walks through the same six steps and the fixes we are making.</span><span class="es" lang="es">Lucía, una persona ficticia de Rosario, recorre los mismos seis pasos y las correcciones que estamos haciendo.</span></p>
+    <!--video--><div class="en"><div class="video"><video controls preload="metadata" playsinline title="Lucía's Search" poster="https://i.ytimg.com/vi/tGNohWqmSFs/maxresdefault.jpg"><source src="SEO%20Explained%20Video%20-%20Lucia%27s%20Search%20v1.0%2001Nov26%20(share).mp4" type="video/mp4" onerror="this.parentNode.parentNode.classList.add('nofile')"></video><a class="vfallback" href="https://youtu.be/tGNohWqmSFs" target="_blank" rel="noopener"><span class="vplay" aria-hidden="true"><svg width="30" height="30" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" fill="#fff"/></svg></span><span class="vlabel">The video file is not next to this page. Watch on YouTube</span></a></div></div><div class="es" lang="es"><div class="video"><video controls preload="metadata" playsinline title="La búsqueda de Lucía" poster="https://i.ytimg.com/vi/tGNohWqmSFs/maxresdefault.jpg"><source src="SEO%20Explained%20Video%20-%20La%20Busqueda%20de%20Lucia%20(ES)%20v1.0%2001Nov26%20(share).mp4" type="video/mp4" onerror="this.parentNode.parentNode.classList.add('nofile')"></video><a class="vfallback" href="https://youtu.be/tGNohWqmSFs" target="_blank" rel="noopener"><span class="vplay" aria-hidden="true"><svg width="30" height="30" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" fill="#fff"/></svg></span><span class="vlabel">El archivo de video no está junto a esta página. Ver en YouTube (en inglés)</span></a></div></div><a class="video-link" href="https://youtu.be/tGNohWqmSFs" target="_blank" rel="noopener"><span class="en">Also on YouTube</span><span class="es" lang="es">También en YouTube (en inglés)</span></a><!--/video-->
+  </div>
+</section>
+
+<section class="journey-intro">
+  <div class="wrap">
+    <h2><span class="en">Six steps between a search and a registration</span><span class="es" lang="es">Seis pasos entre una búsqueda y una inscripción</span></h2>
+    <p class="lead" style="margin-top:12px"><span class="en">Google works through these in order. A page that fails an early step never reaches the later ones, which is why the tracker starts with sitemaps and access, not with new articles.</span><span class="es" lang="es">Google los recorre en orden. Una página que falla en un paso temprano nunca llega a los siguientes; por eso el plan empieza por los sitemaps y los accesos, no por artículos nuevos.</span></p>
+  </div>
+</section>
+
+<div class="journey">
+<nav class="rail" aria-label="Steps / Pasos">
+  <div class="in">
+    <ol>
+      <li><a href="#discover"><b><span class="en">1. Discover</span><span class="es" lang="es">1. Descubrir</span></b><span class="en">Can Google find it?</span><span class="es" lang="es">¿Google la encuentra?</span></a></li>
+      <li><a href="#understand"><b><span class="en">2. Understand</span><span class="es" lang="es">2. Entender</span></b><span class="en">Can it read it?</span><span class="es" lang="es">¿Puede leerla?</span></a></li>
+      <li><a href="#place"><b><span class="en">3. Place</span><span class="es" lang="es">3. Lugar</span></b><span class="en">Is it for Argentina?</span><span class="es" lang="es">¿Es para Argentina?</span></a></li>
+      <li><a href="#relevance"><b><span class="en">4. Relevance</span><span class="es" lang="es">4. Relevancia</span></b><span class="en">Is it the best answer?</span><span class="es" lang="es">¿Es la mejor respuesta?</span></a></li>
+      <li><a href="#choose"><b><span class="en">5. Click</span><span class="es" lang="es">5. Clic</span></b><span class="en">Will people choose it?</span><span class="es" lang="es">¿La van a elegir?</span></a></li>
+      <li><a href="#measure"><b><span class="en">6. Measure</span><span class="es" lang="es">6. Medir</span></b><span class="en">Did it work?</span><span class="es" lang="es">¿Funcionó?</span></a></li>
+    </ol>
+    <div class="track" aria-hidden="true"><div class="fill" id="fill"></div></div>
+  </div>
+</nav>
+
+<section class="stage" id="discover">
+  <div class="wrap">
+    <div>
+      <div class="step"><span class="en">Step 1 of 6</span><span class="es" lang="es">Paso 1 de 6</span></div>
+      <h2><span class="en">Discover: Google has to find the page</span><span class="es" lang="es">Descubrir: Google tiene que encontrar la página</span></h2>
+      <p class="q"><span class="en">Google cannot rank a page it has never visited.</span><span class="es" lang="es">Google no puede posicionar una página que nunca visitó.</span></p>
+      <p><span class="en"><strong>Google finds pages in two ways: by following links, and by reading the sitemap</strong>, a file listing every page we want found. A software robot called a crawler visits each address and follows the links on it. Broken links, redirects that bounce several times and pages nobody links to slow it down or stop it.</span><span class="es" lang="es"><strong>Google encuentra páginas de dos maneras: siguiendo enlaces y leyendo el sitemap</strong>, un archivo que lista cada página que queremos que encuentre. Un robot llamado rastreador visita cada dirección y sigue los enlaces que hay en ella. Los enlaces rotos, las redirecciones que rebotan varias veces y las páginas a las que nadie enlaza lo frenan o lo detienen.</span></p>
+      <div class="ours-box">
+        <h3><span class="en">On our site</span><span class="es" lang="es">En nuestro sitio</span></h3>
+        <p><span class="en">Every main-platform sitemap now returns an empty file (103 of 120 submitted). On 14 October the Argentina sitemap listed 916 pages; today it lists none, and even then it left out the homepage and course pages that earned 77% of our clicks.</span><span class="es" lang="es">Todos los sitemaps de la plataforma principal devuelven hoy un archivo vacío (103 de 120 enviados). El 14 de octubre el sitemap de Argentina listaba 916 páginas; hoy no lista ninguna, y aun entonces dejaba afuera la página de inicio y las páginas de cursos, que generaban el 77% de nuestros clics.</span></p>
+        <p><span class="en">The membership page, built for 9,911 monthly searches, has never been crawled. Four old addresses show errors, and live pages link to a public test copy of the site.</span><span class="es" lang="es">La página de membresía, pensada para 9.911 búsquedas por mes, nunca fue rastreada. Cuatro direcciones viejas muestran errores, y páginas publicadas enlazan a una copia de prueba pública del sitio.</span></p>
+      </div>
+      <div class="chips" data-chips="discover"><span class="lbl"><span class="en">Tasks</span><span class="es" lang="es">Tareas</span>:</span></div>
+      <details class="dev"><summary><span class="en">Technical detail</span><span class="es" lang="es">Detalle técnico</span></summary><ul>
+        <li><span class="en"><code>/sitemap.xml</code> and <code>/sitemap/argentina.xml</code> return 200 with an empty body (Varnish HIT). Regenerate, purge Varnish and CloudFront for <code>/sitemap*</code>, resubmit in Search Console.</span><span class="es" lang="es"><code>/sitemap.xml</code> y <code>/sitemap/argentina.xml</code> devuelven 200 con el cuerpo vacío (Varnish HIT). Regenerar, purgar Varnish y CloudFront para <code>/sitemap*</code> y volver a enviarlos en Search Console.</span></li>
+        <li><span class="en">Use one-hop 301s: <code>/ar-es/home</code> takes two hops today; <code>/ar-es/profesorado-de-yoga</code> is a 302.</span><span class="es" lang="es">Usar 301 de un solo salto: <code>/ar-es/home</code> hoy da dos saltos; <code>/ar-es/profesorado-de-yoga</code> es un 302.</span></li>
+        <li><span class="en"><code>test.…artofliving.org</code> serves full pages with <code>index,follow</code> and a self-canonical; lock it behind a login and send <code>X-Robots-Tag: noindex</code>.</span><span class="es" lang="es"><code>test.…artofliving.org</code> sirve páginas completas con <code>index,follow</code> y canonical propio; protegerlo con login y enviar <code>X-Robots-Tag: noindex</code>.</span></li>
+        <li><span class="en">Remove the two <code>llms.txt</code> lines declared as <code>Sitemap:</code> in robots.txt.</span><span class="es" lang="es">Quitar de robots.txt las dos líneas <code>llms.txt</code> declaradas como <code>Sitemap:</code>.</span></li>
+      </ul></details>
+    </div>
+    <div class="viz" data-viz="crawl">
+      <div class="toggle" role="group" aria-label="Sitemap"><button type="button" aria-pressed="false" data-sm="ok"><span class="en">14 October</span><span class="es" lang="es">14 de octubre</span></button><button type="button" aria-pressed="true" data-sm="empty"><span class="en">Today</span><span class="es" lang="es">Hoy</span></button></div>
+      <div class="crawl">
+        <div class="smap" aria-live="polite">
+          <div class="hd">argentina.xml</div>
+          <div id="smLines"></div>
+          <div class="cnt" id="smCount">0<small><span class="en">pages listed</span><span class="es" lang="es">páginas listadas</span></small></div>
+        </div>
+        <div class="graph">
+          <svg viewBox="0 0 340 210" role="img" aria-label="Crawler">
+            <line class="edge" x1="170" y1="30" x2="70" y2="100"/><line class="edge" x1="170" y1="30" x2="170" y2="100"/><line class="edge" x1="170" y1="30" x2="275" y2="100"/>
+            <line class="edge" x1="70" y1="100" x2="60" y2="180"/><line class="edge" x1="170" y1="100" x2="160" y2="180"/><line class="edge" x1="275" y1="100" x2="270" y2="180"/>
+            <g class="node" data-n="home"><rect x="120" y="14" width="100" height="32" rx="8"/><text x="170" y="34" text-anchor="middle"><tspan class="en">Homepage</tspan><tspan class="es">Inicio</tspan></text></g>
+            <g class="node" data-n="p1"><rect x="25" y="84" width="90" height="32" rx="8"/><text x="70" y="104" text-anchor="middle">Parte 1</text></g>
+            <g class="node" data-n="cen"><rect x="125" y="84" width="90" height="32" rx="8"/><text x="170" y="104" text-anchor="middle"><tspan class="en">Centers</tspan><tspan class="es">Centros</tspan></text></g>
+            <g class="node" data-n="blog"><rect x="230" y="84" width="90" height="32" rx="8"/><text x="275" y="104" text-anchor="middle"><tspan class="en">Articles</tspan><tspan class="es">Artículos</tspan></text></g>
+            <g class="node" data-n="mem"><rect x="10" y="164" width="100" height="32" rx="8"/><text x="60" y="184" text-anchor="middle"><tspan class="en">Membership</tspan><tspan class="es">Membresía</tspan></text></g>
+            <g class="node" data-n="pal"><rect x="115" y="164" width="90" height="32" rx="8"/><text x="160" y="184" text-anchor="middle">Palermo</text></g>
+            <g class="node" data-n="sal"><rect x="220" y="164" width="105" height="32" rx="8"/><text x="272" y="184" text-anchor="middle">Saludo al sol</text></g>
+            <g id="bot"><circle r="16" fill="none" stroke="#ff9800" stroke-opacity=".35" stroke-width="2"/><circle r="8" fill="#ff9800"/></g>
+          </svg>
+        </div>
+      </div>
+      <p class="cap" id="crawlCap"></p>
+    </div>
+  </div>
+</section>
+
+<section class="stage" id="understand">
+  <div class="wrap">
+    <div>
+      <div class="step"><span class="en">Step 2 of 6</span><span class="es" lang="es">Paso 2 de 6</span></div>
+      <h2><span class="en">Understand: the page has to say clearly what it is</span><span class="es" lang="es">Entender: la página tiene que decir claramente qué es</span></h2>
+      <p class="q"><span class="en">Google reads the code, not the design. The code has to say "this is a breathing course in Argentina".</span><span class="es" lang="es">Google lee el código, no el diseño. El código tiene que decir "esto es un curso de respiración en Argentina".</span></p>
+      <p><span class="en"><strong>A few parts of the page carry most of the meaning.</strong> The title and description become the search result. The H1 is the page's main heading and tells Google its topic, so each page needs exactly one. Structured data (schema) labels facts such as dates, prices and addresses. Content loaded later by script, like our course dates, is often invisible to Google.</span><span class="es" lang="es"><strong>Unas pocas partes de la página llevan casi todo el significado.</strong> El título y la descripción se convierten en el resultado de búsqueda. El H1 es el título principal de la página y le dice a Google de qué trata, así que cada página necesita exactamente uno. Los datos estructurados (schema) etiquetan datos como fechas, precios y direcciones. El contenido que se carga después por script, como las fechas de nuestros cursos, muchas veces es invisible para Google.</span></p>
+      <div class="ours-box">
+        <h3><span class="en">On our site</span><span class="es" lang="es">En nuestro sitio</span></h3>
+        <p><span class="en">The homepage has five H1s, all of them banner captions. Parte 1, our main course page, has none. The template prints the description twice, declares generic Spanish instead of Spanish for Argentina, and links shared on WhatsApp point to a placeholder image.</span><span class="es" lang="es">La página de inicio tiene cinco H1, todos textos de banners. Parte 1, nuestra página de curso principal, no tiene ninguno. La plantilla imprime la descripción dos veces, declara español genérico en lugar de español de Argentina, y los enlaces compartidos por WhatsApp apuntan a una imagen de relleno.</span></p>
+        <p><span class="en">Course dates load by script, and the organization is named just "Argentina" in the markup.</span><span class="es" lang="es">Las fechas de los cursos se cargan por script, y en el código la organización se llama solo "Argentina".</span></p>
+      </div>
+      <div class="chips" data-chips="understand"><span class="lbl"><span class="en">Tasks</span><span class="es" lang="es">Tareas</span>:</span></div>
+      <details class="dev"><summary><span class="en">Technical detail</span><span class="es" lang="es">Detalle técnico</span></summary><ul>
+        <li><span class="en">Demote the carousel <code>&lt;h1&gt;</code>s to <code>&lt;h2&gt;</code>; one H1 per template.</span><span class="es" lang="es">Bajar los <code>&lt;h1&gt;</code> del carrusel a <code>&lt;h2&gt;</code>; un H1 por plantilla.</span></li>
+        <li><span class="en">Output one <code>&lt;meta name="description"&gt;</code> and <code>&lt;html lang="es-AR"&gt;</code>.</span><span class="es" lang="es">Emitir un solo <code>&lt;meta name="description"&gt;</code> y <code>&lt;html lang="es-AR"&gt;</code>.</span></li>
+        <li><span class="en">Delete the Open Graph block with <code>og:image="URL-DE-LA-IMAGEN-OG"</code>; keep the correct second block.</span><span class="es" lang="es">Borrar el bloque Open Graph con <code>og:image="URL-DE-LA-IMAGEN-OG"</code>; conservar el segundo bloque, que es correcto.</span></li>
+        <li><span class="en">Render course dates in the initial HTML; add <code>Course</code> + <code>CourseInstance</code> JSON-LD; fix <code>Organization.name</code> and <code>sameAs</code>.</span><span class="es" lang="es">Mostrar las fechas de los cursos en el HTML inicial; agregar JSON-LD <code>Course</code> + <code>CourseInstance</code>; corregir <code>Organization.name</code> y <code>sameAs</code>.</span></li>
+        <li><span class="en"><code>noindex</code> on <code>/ar-es/user</code>, <code>/comunicaciones/*</code>, <code>/india-1/*</code> and <code>/India-2/*</code>.</span><span class="es" lang="es"><code>noindex</code> en <code>/ar-es/user</code>, <code>/comunicaciones/*</code>, <code>/india-1/*</code> e <code>/India-2/*</code>.</span></li>
+      </ul></details>
+    </div>
+    <div class="viz">
+      <div class="toggle" role="group" aria-label="Code"><button type="button" aria-pressed="true" data-an="now"><span class="en">What Google reads today</span><span class="es" lang="es">Lo que Google lee hoy</span></button><button type="button" aria-pressed="false" data-an="fixed"><span class="en">After the fixes</span><span class="es" lang="es">Después de las correcciones</span></button></div>
+      <div class="page">
+        <div class="chrome"><i></i><i></i><i></i>&nbsp;artofliving.org/ar-es/</div>
+        <div class="body">
+          <div class="anat-state" data-state="now">
+            <div class="tagrow bad"><span class="tag">lang</span><span class="txt"><span class="en">"es" (any Spanish-speaking country)</span><span class="es" lang="es">"es" (cualquier país hispanohablante)</span></span></div>
+            <div class="tagrow"><span class="tag">&lt;title&gt;</span><span class="txt">El Arte de Vivir Argentina</span></div>
+            <div class="tagrow bad"><span class="tag">description</span><span class="txt"><span class="en">printed twice</span><span class="es" lang="es">impresa dos veces</span></span></div>
+            <div class="tagrow bad"><span class="tag">&lt;h1&gt;</span><span class="txt"><span class="en">Banner caption 1</span><span class="es" lang="es">Texto de banner 1</span></span></div>
+            <div class="tagrow bad"><span class="tag">&lt;h1&gt;</span><span class="txt"><span class="en">Banner caption 2</span><span class="es" lang="es">Texto de banner 2</span></span></div>
+            <div class="tagrow bad"><span class="tag">&lt;h1&gt;</span><span class="txt"><span class="en">Banner caption 3</span><span class="es" lang="es">Texto de banner 3</span></span></div>
+            <div class="tagrow bad"><span class="tag">&lt;h1&gt;</span><span class="txt"><span class="en">Banner caption 4</span><span class="es" lang="es">Texto de banner 4</span></span></div>
+            <div class="tagrow bad"><span class="tag">&lt;h1&gt;</span><span class="txt"><span class="en">Banner caption 5</span><span class="es" lang="es">Texto de banner 5</span></span></div>
+            <div class="tagrow bad"><span class="tag">og:image</span><span class="txt">URL-DE-LA-IMAGEN-OG</span></div>
+            <div class="tagrow bad"><span class="tag">schema</span><span class="txt">Organization: "Argentina"</span></div>
+            <div class="tagrow bad"><span class="tag">&lt;h2&gt;</span><span class="txt"><span class="en">"Page Footer" (English template leftover)</span><span class="es" lang="es">"Page Footer" (resto de plantilla en inglés)</span></span></div>
+          </div>
+          <div class="anat-state" data-state="fixed" hidden>
+            <div class="tagrow good"><span class="tag">lang</span><span class="txt"><span class="en">"es-AR" (Spanish for Argentina)</span><span class="es" lang="es">"es-AR" (español de Argentina)</span></span></div>
+            <div class="tagrow good"><span class="tag">&lt;title&gt;</span><span class="txt">El Arte de Vivir Argentina</span></div>
+            <div class="tagrow good"><span class="tag">description</span><span class="txt"><span class="en">one description, written for searchers</span><span class="es" lang="es">una sola descripción, escrita para quien busca</span></span></div>
+            <div class="tagrow good"><span class="tag">&lt;h1&gt;</span><span class="txt">El Arte de Vivir Argentina: cursos de meditación, respiración y yoga</span></div>
+            <div class="tagrow"><span class="tag">&lt;h2&gt;</span><span class="txt"><span class="en">Banner captions as subheadings</span><span class="es" lang="es">Textos de banners como subtítulos</span></span></div>
+            <div class="tagrow good"><span class="tag">og:image</span><span class="txt"><span class="en">a real image for WhatsApp and Facebook</span><span class="es" lang="es">una imagen real para WhatsApp y Facebook</span></span></div>
+            <div class="tagrow good"><span class="tag">schema</span><span class="txt"><span class="en">Organization: "El Arte de Vivir Argentina" + profiles</span><span class="es" lang="es">Organization: "El Arte de Vivir Argentina" + perfiles</span></span></div>
+            <div class="tagrow good"><span class="tag">schema</span><span class="txt"><span class="en">Course dates, venue and price in the page source</span><span class="es" lang="es">Fechas, sede y precio del curso en el código de la página</span></span></div>
+          </div>
+        </div>
+      </div>
+      <p class="cap"><span class="en">The homepage, read the way Google reads it. Red lines are problems the audit found.</span><span class="es" lang="es">La página de inicio, leída como la lee Google. Las líneas rojas son problemas que encontró la auditoría.</span></p>
+    </div>
+  </div>
+</section>
+
+<section class="stage" id="place">
+  <div class="wrap">
+    <div>
+      <div class="step"><span class="en">Step 3 of 6</span><span class="es" lang="es">Paso 3 de 6</span></div>
+      <h2><span class="en">Language and place: telling Google this page is for Argentina</span><span class="es" lang="es">Idioma y lugar: decirle a Google que esta página es para Argentina</span></h2>
+      <p class="q"><span class="en">Our site has a version for almost every country. Google needs to be told which one to show in Buenos Aires.</span><span class="es" lang="es">Nuestro sitio tiene una versión para casi cada país. Hay que decirle a Google cuál mostrar en Buenos Aires.</span></p>
+      <p><span class="en"><strong>hreflang is a label that links the country versions of a page together</strong>, so Google shows the Argentina page to people in Argentina and the US page to people in the US. For local searches ("meditación en Rosario"), Google also looks for one clear page per center, with an address, and a verified Business Profile on Google Maps with reviews.</span><span class="es" lang="es"><strong>hreflang es una etiqueta que vincula entre sí las versiones de una página para cada país</strong>, así Google muestra la página de Argentina a quienes están en Argentina y la de Estados Unidos a quienes están allá. Para las búsquedas locales ("meditación en Rosario"), Google también busca una página clara por centro, con dirección, y un Perfil de Empresa verificado en Google Maps, con reseñas.</span></p>
+      <div class="ours-box">
+        <h3><span class="en">On our site</span><span class="es" lang="es">En nuestro sitio</span></h3>
+        <p><span class="en">The new template has no hreflang, so Google sends some Argentine searchers to the India and US pages. In one month the Argentina pages' share of those clicks fell from 89% to 83%.</span><span class="es" lang="es">La plantilla nueva no tiene hreflang, así que Google manda a parte de quienes buscan desde Argentina a las páginas de India y de Estados Unidos. En un mes, la parte de esos clics que se llevan las páginas de Argentina bajó del 89% al 83%.</span></p>
+        <p><span class="en">Rosario and La Plata each have three pages competing with each other. Center pages have English titles and no address, and their click-through fell from 1.46% a year ago to 0.33%.</span><span class="es" lang="es">Rosario y La Plata tienen tres páginas cada una, que compiten entre sí. Las páginas de centros tienen títulos en inglés y no muestran dirección, y su tasa de clics bajó del 1,46% de hace un año al 0,33%.</span></p>
+      </div>
+      <div class="chips" data-chips="place"><span class="lbl"><span class="en">Tasks</span><span class="es" lang="es">Tareas</span>:</span></div>
+      <details class="dev"><summary><span class="en">Technical detail</span><span class="es" lang="es">Detalle técnico</span></summary><ul>
+        <li><span class="en">Generate hreflang centrally in the sitemaps: <code>es-AR</code> and <code>en-AR</code> plus every Spanish-language country, in both directions, with an <code>x-default</code>.</span><span class="es" lang="es">Generar hreflang de forma central en los sitemaps: <code>es-AR</code> y <code>en-AR</code> más cada país de habla hispana, en ambas direcciones, con un <code>x-default</code>.</span></li>
+        <li><span class="en">Merge duplicate city pages with 301s (Rosario, La Plata, Córdoba, Neuquén, Salta, Mendoza, Pilar, Tucumán).</span><span class="es" lang="es">Unificar las páginas de ciudades duplicadas con 301 (Rosario, La Plata, Córdoba, Neuquén, Salta, Mendoza, Pilar, Tucumán).</span></li>
+        <li><span class="en">Center template: address, map, phone, upcoming courses in the HTML, <code>LocalBusiness</code> JSON-LD.</span><span class="es" lang="es">Plantilla de centro: dirección, mapa, teléfono, próximos cursos en el HTML, JSON-LD <code>LocalBusiness</code>.</span></li>
+      </ul></details>
+    </div>
+    <div class="viz">
+      <div class="who-gets">
+        <div style="font-size:14px;font-weight:500"><span class="en">Who gets the click when someone in Argentina searches for us</span><span class="es" lang="es">Quién se lleva el clic cuando alguien en Argentina nos busca</span></div>
+        <div class="sharerow"><span><span class="en">A month ago</span><span class="es" lang="es">Hace un mes</span></span><div class="sharebar"><span class="ar" data-w="89"><span class="en">Argentina pages 89%</span><span class="es" lang="es">Páginas de Argentina 89%</span></span><span class="oth" data-w="11">11%</span></div></div>
+        <div class="sharerow"><span><span class="en">Now</span><span class="es" lang="es">Ahora</span></span><div class="sharebar"><span class="ar" data-w="83"><span class="en">Argentina pages 83%</span><span class="es" lang="es">Páginas de Argentina 83%</span></span><span class="oth" data-w="17"><span class="en">India, US 17%</span><span class="es" lang="es">India, EE. UU. 17%</span></span></div></div>
+      </div>
+      <div style="margin-top:24px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">
+        <div style="font-size:14px;font-weight:500"><span class="en">One city, one page</span><span class="es" lang="es">Una ciudad, una página</span></div>
+        <div class="toggle" role="group" aria-label="Cities" style="margin:0"><button type="button" aria-pressed="true" data-ct="now"><span class="en">Today</span><span class="es" lang="es">Hoy</span></button><button type="button" aria-pressed="false" data-ct="fixed"><span class="en">Merged</span><span class="es" lang="es">Unificadas</span></button></div>
+      </div>
+      <div class="cities">
+        <div class="city"><b>Rosario</b><div class="dots"><i></i><i></i><i></i></div><small data-txt></small></div>
+        <div class="city"><b>La Plata</b><div class="dots"><i></i><i></i><i></i></div><small data-txt></small></div>
+        <div class="city"><b>Córdoba</b><div class="dots"><i></i><i></i></div><small data-txt></small></div>
+      </div>
+      <p class="cap"><span class="en">When several pages target the same city, links and clicks are divided between them. One page collects all of it.</span><span class="es" lang="es">Cuando varias páginas apuntan a la misma ciudad, los enlaces y los clics se reparten entre ellas. Una sola página lo junta todo.</span></p>
+    </div>
+  </div>
+</section>
+
+<section class="stage" id="relevance">
+  <div class="wrap">
+    <div>
+      <div class="step"><span class="en">Step 4 of 6</span><span class="es" lang="es">Paso 4 de 6</span></div>
+      <h2><span class="en">Relevance and trust: being the best answer</span><span class="es" lang="es">Relevancia y confianza: ser la mejor respuesta</span></h2>
+      <p class="q"><span class="en">For each search Google picks one page from our site. If we offer five, it has to guess.</span><span class="es" lang="es">Para cada búsqueda, Google elige una página de nuestro sitio. Si le ofrecemos cinco, tiene que adivinar.</span></p>
+      <p><span class="en"><strong>Google ranks the page that best answers the search, from a source it trusts, that loads fast.</strong> When several of our pages target the same search ("cannibalisation"), they weaken each other. When no page answers a search at all, Google shows someone else's. Trust grows from clear authorship, honest answers to hard questions and links from other sites. Speed matters most on phones, where 71% of our clicks happen.</span><span class="es" lang="es"><strong>Google posiciona la página que mejor responde a la búsqueda, de una fuente en la que confía y que carga rápido.</strong> Cuando varias de nuestras páginas apuntan a la misma búsqueda ("canibalización"), se debilitan entre sí. Cuando ninguna página responde a una búsqueda, Google muestra la de otro. La confianza crece con una autoría clara, respuestas honestas a preguntas difíciles y enlaces desde otros sitios. La velocidad importa sobre todo en el celular, donde ocurre el 71% de nuestros clics.</span></p>
+      <div class="ours-box">
+        <h3><span class="en">On our site</span><span class="es" lang="es">En nuestro sitio</span></h3>
+        <p><span class="en">Five pages compete for "membresía", including the login page. Searches like "secta" and "opiniones" are answered only by other sites. Spanish searches for the chakras and guided sleep meditation land on English pages.</span><span class="es" lang="es">Cinco páginas compiten por "membresía", incluida la página de inicio de sesión. Búsquedas como "secta" y "opiniones" solo las responden otros sitios. Las búsquedas en español sobre los chakras y la meditación guiada para dormir terminan en páginas en inglés.</span></p>
+        <p><span class="en">Mobile speed scores 67 out of 100, with 2.4 MB of JavaScript the page never uses.</span><span class="es" lang="es">La velocidad en celular obtiene 67 de 100, con 2,4 MB de JavaScript que la página nunca usa.</span></p>
+      </div>
+      <div class="chips" data-chips="relevance"><span class="lbl"><span class="en">Tasks</span><span class="es" lang="es">Tareas</span>:</span></div>
+      <details class="dev"><summary><span class="en">Technical detail</span><span class="es" lang="es">Detalle técnico</span></summary><ul>
+        <li><span class="en">Pick one owner page for "membresía" and link the others to it.</span><span class="es" lang="es">Elegir una sola página responsable de "membresía" y enlazar las demás hacia ella.</span></li>
+        <li><span class="en">Defer or remove the 2.4 MB of unused JavaScript; cache the anonymous homepage HTML at the CDN (today <code>private, no-cache</code>); raise HSTS from 60 seconds to one year.</span><span class="es" lang="es">Diferir o quitar los 2,4 MB de JavaScript sin usar; cachear en la CDN el HTML anónimo de la página de inicio (hoy <code>private, no-cache</code>); subir HSTS de 60 segundos a un año.</span></li>
+        <li><span class="en">Gurudev page: one H1 and <code>Person</code> JSON-LD with <code>sameAs</code>.</span><span class="es" lang="es">Página de Gurudev: un solo H1 y JSON-LD <code>Person</code> con <code>sameAs</code>.</span></li>
+      </ul></details>
+    </div>
+    <div class="viz">
+      <div class="toggle" role="group" aria-label="Membership"><button type="button" aria-pressed="true" data-mb="now"><span class="en">Today</span><span class="es" lang="es">Hoy</span></button><button type="button" aria-pressed="false" data-mb="fixed"><span class="en">One page owns it</span><span class="es" lang="es">Una sola página</span></button></div>
+      <div class="query"><svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10" cy="10" r="6.5" fill="none" stroke="#9aa0a6" stroke-width="2"/><path d="M15 15l5 5" stroke="#9aa0a6" stroke-width="2" stroke-linecap="round"/></svg>membresía el arte de vivir <span style="color:var(--sub)"><span class="en">9,911 impressions a month</span><span class="es" lang="es">9.911 impresiones por mes</span></span></div>
+      <div class="pages" id="mbPages">
+        <div class="pg" data-k="home"><span class="pgname"><span class="en">Homepage</span><span class="es" lang="es">Inicio</span></span><div class="meter"><i></i></div></div>
+        <div class="pg" data-k="ysr"><span class="pgname" id="ysrName">Ya soy respirador</span><div class="meter"><i></i></div></div>
+        <div class="pg" data-k="p1"><span class="pgname">Parte 1</span><div class="meter"><i></i></div></div>
+        <div class="pg" data-k="all"><span class="pgname"><span class="en">All courses</span><span class="es" lang="es">Todos los cursos</span></span><div class="meter"><i></i></div></div>
+        <div class="pg" data-k="login"><span class="pgname"><span class="en">Login page</span><span class="es" lang="es">Inicio de sesión</span></span><div class="meter"><i></i></div></div>
+      </div>
+      <p class="cap" id="mbCap"></p>
+      <div style="font-size:14px;font-weight:500;margin-top:22px"><span class="en">Searches with no Spanish page of ours</span><span class="es" lang="es">Búsquedas sin una página nuestra en español</span></div>
+      <div class="gaps">
+        <div class="gap"><b>"secta", "opiniones"</b><span><span class="en">answered by other sites</span><span class="es" lang="es">las responden otros sitios</span></span></div>
+        <div class="gap"><b>"los 7 chakras"</b><span><span class="en">513 a month, English page shown</span><span class="es" lang="es">513 por mes, se muestra una página en inglés</span></span></div>
+        <div class="gap"><b><span class="en">guided sleep meditation</span><span class="es" lang="es">meditación guiada para dormir</span></b><span><span class="en">425 a month, English page shown</span><span class="es" lang="es">425 por mes, se muestra una página en inglés</span></span></div>
+        <div class="gap"><b><span class="en">corporate wellbeing, online courses</span><span class="es" lang="es">bienestar en empresas, cursos online</span></b><span><span class="en">no page yet</span><span class="es" lang="es">todavía sin página</span></span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="stage" id="choose">
+  <div class="wrap">
+    <div>
+      <div class="step"><span class="en">Step 5 of 6</span><span class="es" lang="es">Paso 5 de 6</span></div>
+      <h2><span class="en">The click: the search result is our shop window</span><span class="es" lang="es">El clic: el resultado de búsqueda es nuestra vidriera</span></h2>
+      <p class="q"><span class="en">Ranking puts us on the shelf. The title and description decide whether anyone picks us up.</span><span class="es" lang="es">Posicionar nos pone en el estante. El título y la descripción deciden si alguien nos elige.</span></p>
+      <p><span class="en"><strong>Click-through rate (CTR) is the share of people who see our result and click it.</strong> It depends on position, but also on the result itself: a clear Spanish title that matches the search, and a description that says what the person gets. It is the cheapest lever in SEO: no new page and no developer, just better words.</span><span class="es" lang="es"><strong>La tasa de clics (CTR) es la proporción de personas que ven nuestro resultado y hacen clic.</strong> Depende de la posición, pero también del resultado en sí: un título claro en español que coincida con la búsqueda y una descripción que diga qué se lleva la persona. Es la palanca más barata del SEO: sin páginas nuevas ni desarrolladores, solo mejores palabras.</span></p>
+      <div class="ours-box">
+        <h3><span class="en">On our site</span><span class="es" lang="es">En nuestro sitio</span></h3>
+        <p><span class="en">SKY Campus ranks at position 2.1 but gets 0.35% of clicks; a result in that position typically gets around 15%. Its title is just "Sky Campus" and it has no description. Saludo al sol is seen about 1,100 times a month and clicked once.</span><span class="es" lang="es">SKY Campus está en la posición 2,1 pero recibe el 0,35% de los clics; un resultado en esa posición suele recibir alrededor del 15%. Su título es solo "Sky Campus" y no tiene descripción. Saludo al sol se ve unas 1.100 veces por mes y recibe un solo clic.</span></p>
+        <p><span class="en">Links shared on WhatsApp, where courses spread in Argentina, show no image.</span><span class="es" lang="es">Los enlaces compartidos por WhatsApp, por donde se difunden los cursos en Argentina, no muestran imagen.</span></p>
+      </div>
+      <div class="chips" data-chips="choose"><span class="lbl"><span class="en">Tasks</span><span class="es" lang="es">Tareas</span>:</span></div>
+      <details class="dev"><summary><span class="en">Technical detail</span><span class="es" lang="es">Detalle técnico</span></summary><ul>
+        <li><span class="en">Titles of 50-60 characters ending "| El Arte de Vivir"; descriptions of 140-160 characters.</span><span class="es" lang="es">Títulos de 50 a 60 caracteres que terminen en "| El Arte de Vivir"; descripciones de 140 a 160 caracteres.</span></li>
+        <li><span class="en">Ready-made titles for the six high-impression pages are in <span class="mono">seo/reports/2026-10-15-title-optimization.md</span>.</span><span class="es" lang="es">Los títulos listos para las seis páginas con más impresiones están en <span class="mono">seo/reports/2026-10-15-title-optimization.md</span>.</span></li>
+      </ul></details>
+    </div>
+    <div class="viz ctr">
+      <svg viewBox="0 0 420 230" role="img" aria-label="CTR">
+        <defs><linearGradient id="ctrgrad" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#ff9800" stop-opacity=".25"/><stop offset="1" stop-color="#ff9800" stop-opacity="0"/></linearGradient></defs>
+        <line class="axis" x1="40" y1="190" x2="400" y2="190"/><line class="axis" x1="40" y1="12" x2="40" y2="190"/>
+        <text x="32" y="194" text-anchor="end">0%</text><text x="32" y="134" text-anchor="end">10%</text><text x="32" y="74" text-anchor="end">20%</text>
+        <g id="xlabels"></g>
+        <text x="220" y="224" text-anchor="middle"><tspan class="en">Position on Google</tspan><tspan class="es">Posición en Google</tspan></text>
+        <path class="area" id="ctrArea"/>
+        <path class="curve" id="ctrCurve"/>
+        <g id="skyPt" opacity="0">
+          <line id="skyGap" stroke="#c8402b" stroke-dasharray="3 3"/>
+          <circle class="ring" r="8"/><circle class="pt" r="5"/>
+          <text id="skyLbl" font-weight="500" style="fill:#c8402b"><tspan class="en">SKY Campus: 0.35%</tspan><tspan class="es">SKY Campus: 0,35%</tspan></text>
+        </g>
+      </svg>
+      <p class="cap"><span class="en">Orange: typical click-through by position (industry average). Red: what SKY Campus gets at position 2.1.</span><span class="es" lang="es">Naranja: tasa de clics típica según la posición (promedio de la industria). Rojo: lo que obtiene SKY Campus en la posición 2,1.</span></p>
+      <div class="snips">
+        <div class="snip"><p class="lab"><span class="en">Today</span><span class="es" lang="es">Hoy</span></p><div class="t">Sky Campus</div><div class="d empty"><span class="en">No description, so Google improvises one</span><span class="es" lang="es">Sin descripción, así que Google improvisa una</span></div></div>
+        <div class="snip"><p class="lab"><span class="en">An example of what task A36 asks for</span><span class="es" lang="es">Un ejemplo de lo que pide la tarea A36</span></p><div class="t">SKY Campus para universitarios | El Arte de Vivir</div><div class="d">Respiración y meditación para estudiantes: menos estrés, más foco y mejor descanso. Talleres en universidades de todo el país.</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="stage" id="measure">
+  <div class="wrap">
+    <div>
+      <div class="step"><span class="en">Step 6 of 6</span><span class="es" lang="es">Paso 6 de 6</span></div>
+      <h2><span class="en">Measure: knowing whether any of this worked</span><span class="es" lang="es">Medir: saber si algo de esto funcionó</span></h2>
+      <p class="q"><span class="en">If we cannot count registrations correctly, we cannot tell which fix brought students.</span><span class="es" lang="es">Si no podemos contar bien las inscripciones, no podemos saber qué corrección trajo alumnos.</span></p>
+      <p><span class="en"><strong>SEO ends in a registration, not a ranking.</strong> We need four things: weekly clicks from Search Console, rankings for our 46 key searches, how AI assistants describe us, and registrations by center and program. Tag Manager is the tool that records a registration; if it runs more than once, every number is inflated.</span><span class="es" lang="es"><strong>El SEO termina en una inscripción, no en un puesto en Google.</strong> Necesitamos cuatro cosas: los clics semanales de Search Console, la posición de nuestras 46 búsquedas clave, cómo nos describen los asistentes de IA, y las inscripciones por centro y por programa. Tag Manager es la herramienta que registra una inscripción; si se ejecuta más de una vez, todos los números se inflan.</span></p>
+      <div class="ours-box">
+        <h3><span class="en">On our site</span><span class="es" lang="es">En nuestro sitio</span></h3>
+        <p><span class="en">Three Tag Manager containers load across the site, so one registration can be counted up to three times. There is no rank tracking, no AI-answer baseline and no registration data by center yet.</span><span class="es" lang="es">En el sitio se cargan tres contenedores de Tag Manager, así que una inscripción puede contarse hasta tres veces. Todavía no hay seguimiento de posiciones, ni una línea de base de las respuestas de IA, ni datos de inscripciones por centro.</span></p>
+        <p><span class="en">Clicks fell 21% in a month. A weekly check, dated from the day the sitemaps come back, will show whether we recover.</span><span class="es" lang="es">Los clics cayeron un 21% en un mes. Un control semanal, contado desde el día en que vuelvan los sitemaps, va a mostrar si nos recuperamos.</span></p>
+      </div>
+      <div class="chips" data-chips="measure"><span class="lbl"><span class="en">Tasks</span><span class="es" lang="es">Tareas</span>:</span></div>
+      <details class="dev"><summary><span class="en">Technical detail</span><span class="es" lang="es">Detalle técnico</span></summary><ul>
+        <li><span class="en"><code>GTM-W5J3LPBS</code> and <code>GTM-T25R2DBS</code> on the new template, <code>GTM-N2J496</code> on the old one. Keep one container per page; make one test registration per program.</span><span class="es" lang="es"><code>GTM-W5J3LPBS</code> y <code>GTM-T25R2DBS</code> en la plantilla nueva, <code>GTM-N2J496</code> en la vieja. Dejar un contenedor por página; hacer una inscripción de prueba por programa.</span></li>
+        <li><span class="en">Search Console filter: page regex <code>artofliving\.org/ar-es(/|$)</code>, country Argentina.</span><span class="es" lang="es">Filtro de Search Console: regex de página <code>artofliving\.org/ar-es(/|$)</code>, país Argentina.</span></li>
+      </ul></details>
+    </div>
+    <div class="viz">
+      <div class="count">
+        <div class="person" aria-hidden="true"><svg width="30" height="30" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4" fill="#f17225"/><path d="M4 21c1.5-4.5 5-6 8-6s6.5 1.5 8 6" fill="#f17225"/></svg></div>
+        <div style="font-size:14px"><b style="font-weight:500"><span class="en">One person registers for Parte 1</span><span class="es" lang="es">Una persona se inscribe en Parte 1</span></b><br><span style="color:var(--sub)"><span class="en">and each container that fires records it</span><span class="es" lang="es">y cada contenedor que se activa la registra</span></span></div>
+      </div>
+      <div class="tags3">
+        <div class="gtm"><span class="mono">GTM-W5J3LPBS</span><div class="pulse"><i></i></div><b>0</b></div>
+        <div class="gtm"><span class="mono">GTM-T25R2DBS</span><div class="pulse"><i></i></div><b>0</b></div>
+        <div class="gtm"><span class="mono">GTM-N2J496</span><div class="pulse"><i></i></div><b>0</b></div>
+      </div>
+      <p class="total"><span class="en">Reports could show</span><span class="es" lang="es">Los informes podrían mostrar</span> <b id="tot">0</b> <span class="en">registrations for one real person.</span><span class="es" lang="es">inscripciones de una sola persona real.</span></p>
+      <button class="btn ghost" id="replay" type="button" style="padding:7px 16px;font-size:13px"><span class="en">Replay</span><span class="es" lang="es">Repetir</span></button>
+      <div class="trend">
+        <div style="font-size:14px;font-weight:500;margin-bottom:34px"><span class="en">Clicks from Argentina, 28 days</span><span class="es" lang="es">Clics desde Argentina, 28 días</span></div>
+        <div class="bars"><div class="b" data-h="100"><span><span class="en">1,451</span><span class="es" lang="es">1.451</span></span></div><div class="b now" data-h="79"><span><span class="en">1,143</span><span class="es" lang="es">1.143</span></span></div></div>
+        <div class="lb"><span><span class="en">Previous 28 days</span><span class="es" lang="es">28 días anteriores</span></span><span><span class="en">Last 28 days (-21%)</span><span class="es" lang="es">Últimos 28 días (-21%)</span></span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+</div>
+
+<section class="tasks" id="tasks">
+  <div class="wrap">
+    <h2><span class="en">The 39 tasks, by step and by week</span><span class="es" lang="es">Las 39 tareas, por paso y por semana</span></h2>
+    <p class="lead" style="margin-top:12px"><span class="en">Every task in the tracker, grouped by the step it fixes. Pick a week to see what is due, or a step to see everything that serves it. Open a task for the reason, the concrete action and who does it.</span><span class="es" lang="es">Cada tarea del plan, agrupada según el paso que resuelve. Elijan una semana para ver qué corresponde, o un paso para ver todo lo que lo mejora. Abran una tarea para ver el motivo, la acción concreta y quién la hace.</span></p>
+    <div class="when" id="when"></div>
+    <div class="filters">
+      <label><span class="en">Step</span><span class="es" lang="es">Paso</span> <select id="fStage"><option value="" data-es="Los seis pasos">All six steps</option><option value="discover" data-es="1. Descubrir">1. Discover</option><option value="understand" data-es="2. Entender">2. Understand</option><option value="place" data-es="3. Idioma y lugar">3. Language and place</option><option value="relevance" data-es="4. Relevancia">4. Relevance</option><option value="choose" data-es="5. El clic">5. The click</option><option value="measure" data-es="6. Medir">6. Measure</option></select></label>
+      <label><span class="en">Who</span><span class="es" lang="es">Quién</span> <select id="fWho"><option value="" data-es="Todos">Everyone</option><option value="global" data-es="Equipo web global">Global web team</option><option value="ar" data-es="Equipo de Argentina">Argentina team</option><option value="other" data-es="Dominio y accesos">Domain admin and access owners</option></select></label>
+      <label><span class="en">Search</span><span class="es" lang="es">Buscar</span> <input id="fQ" type="search" placeholder="sitemap, H1, Rosario"></label>
+      <span class="n" id="count" aria-live="polite"></span>
+    </div>
+    <p class="legend"><span class="en">P0: do first. P1: this month. P2: when capacity allows.</span><span class="es" lang="es">P0: hacer primero. P1: este mes. P2: cuando haya capacidad.</span></p>
+    <div class="list" id="list"></div>
+  </div>
+</section>
+
+<section class="gloss">
+  <div class="wrap">
+    <h2><span class="en">Words you will hear</span><span class="es" lang="es">Palabras que van a escuchar</span></h2>
+    <div class="terms">
+      <details><summary><span class="en">Crawler</span><span class="es" lang="es">Rastreador (crawler)</span></summary><p><span class="en">Google's robot that visits pages and follows their links. If it cannot reach a page, nothing else matters.</span><span class="es" lang="es">El robot de Google que visita páginas y sigue sus enlaces. Si no puede llegar a una página, nada más importa.</span></p></details>
+      <details><summary>Sitemap</summary><p><span class="en">An XML file listing the pages we want Google to know about. Ours is currently empty (task A01).</span><span class="es" lang="es">Un archivo XML que lista las páginas que queremos que Google conozca. El nuestro hoy está vacío (tarea A01).</span></p></details>
+      <details><summary><span class="en">Index</span><span class="es" lang="es">Índice</span></summary><p><span class="en">Google's library of pages it can show. Crawled is not the same as indexed; Google decides whether a page is worth keeping.</span><span class="es" lang="es">La biblioteca de páginas que Google puede mostrar. Rastreada no es lo mismo que indexada; Google decide si vale la pena guardar una página.</span></p></details>
+      <details><summary>noindex</summary><p><span class="en">A tag that tells Google not to show a page in results. Right for login pages and internal documents.</span><span class="es" lang="es">Una etiqueta que le dice a Google que no muestre una página en los resultados. Sirve para páginas de inicio de sesión y documentos internos.</span></p></details>
+      <details><summary><span class="en">301 and 302 redirects</span><span class="es" lang="es">Redirecciones 301 y 302</span></summary><p><span class="en">A 301 says "moved permanently" and passes the old page's ranking to the new one. A 302 says "moved for now" and does not.</span><span class="es" lang="es">Una 301 dice "se mudó para siempre" y pasa el posicionamiento de la página vieja a la nueva. Una 302 dice "se mudó por ahora" y no lo pasa.</span></p></details>
+      <details><summary><span class="en">Title and meta description</span><span class="es" lang="es">Título y meta descripción</span></summary><p><span class="en">The blue headline and the grey text in a search result. They decide whether people click.</span><span class="es" lang="es">El título azul y el texto gris de un resultado de búsqueda. Deciden si la gente hace clic.</span></p></details>
+      <details><summary>H1</summary><p><span class="en">The main heading in the page code. One per page, describing what the page is about.</span><span class="es" lang="es">El título principal en el código de la página. Uno por página, que describe de qué trata.</span></p></details>
+      <details><summary><span class="en">Structured data (schema)</span><span class="es" lang="es">Datos estructurados (schema)</span></summary><p><span class="en">Labels in the code that state facts: this is a course, on this date, at this address, for this price. They can earn richer results.</span><span class="es" lang="es">Etiquetas en el código que declaran datos: esto es un curso, en esta fecha, en esta dirección, a este precio. Pueden lograr resultados más completos.</span></p></details>
+      <details><summary>hreflang</summary><p><span class="en">Links between the country and language versions of a page, so each country sees its own version.</span><span class="es" lang="es">Vínculos entre las versiones de una página por país e idioma, para que cada país vea la suya.</span></p></details>
+      <details><summary><span class="en">Cannibalisation</span><span class="es" lang="es">Canibalización</span></summary><p><span class="en">Several of our own pages competing for the same search, so each ranks lower than one strong page would.</span><span class="es" lang="es">Varias de nuestras propias páginas compitiendo por la misma búsqueda, así que cada una queda más abajo de lo que quedaría una sola página fuerte.</span></p></details>
+      <details><summary><span class="en">Impressions, clicks and CTR</span><span class="es" lang="es">Impresiones, clics y CTR</span></summary><p><span class="en">Impressions: how often our result was shown. Clicks: how often it was chosen. CTR: clicks divided by impressions.</span><span class="es" lang="es">Impresiones: cuántas veces se mostró nuestro resultado. Clics: cuántas veces lo eligieron. CTR: clics divididos por impresiones.</span></p></details>
+      <details><summary>Core Web Vitals</summary><p><span class="en">Google's measures of loading speed, responsiveness and visual stability, judged on real visitors' phones.</span><span class="es" lang="es">Las mediciones de Google de velocidad de carga, respuesta y estabilidad visual, tomadas en los celulares de visitantes reales.</span></p></details>
+      <details><summary><span class="en">Business Profile</span><span class="es" lang="es">Perfil de Empresa</span></summary><p><span class="en">A center's listing on Google Maps, with address, hours, photos and reviews. It drives "near me" searches.</span><span class="es" lang="es">La ficha de un centro en Google Maps, con dirección, horarios, fotos y reseñas. Es clave para las búsquedas "cerca de mí".</span></p></details>
+      <details><summary>Search Console</summary><p><span class="en">Google's free tool that shows our clicks, rankings, indexing problems and sitemaps. Our main source of truth for SEO.</span><span class="es" lang="es">La herramienta gratuita de Google que muestra nuestros clics, posiciones, problemas de indexación y sitemaps. Nuestra principal fuente de datos para el SEO.</span></p></details>
+    </div>
+  </div>
+</section>
+
+<footer><div class="wrap"><p><span class="en">Prepared for the El Arte de Vivir Argentina web and marketing teams and the global web team. Based on the AR-ES SEO Audit v1.2 (31 October 2026) and the Argentina SEO Implementation Tracker v1.1. Figures are Search Console data for searchers in Argentina, plus offline crawls. Internal working document.</span><span class="es" lang="es">Preparado para los equipos web y de marketing de El Arte de Vivir Argentina y el equipo web global. Basado en la Auditoría SEO AR-ES v1.2 (31 de octubre de 2026) y el plan de implementación SEO de Argentina v1.1. Las cifras son datos de Search Console de quienes buscan desde Argentina, más rastreos propios. Documento interno de trabajo.</span></p></div></footer>
+
+<script>
+const TASKS = [{"id":"A01","phase":"Today","why":"Google learns about new and changed pages from the sitemaps; all 103 main-platform sitemaps now fail, so new Argentina pages (such as membership) go undiscovered.","task":"Restore the XML sitemaps","action":"Every sitemap tested (/sitemap.xml, /sitemap/argentina.xml, /sitemap/argentina/yoga.xml, /sitemap/united_states.xml) returns HTTP 200 with an empty body (Varnish HIT, X-Drupal-Cache MISS). Regenerate the Drupal XML sitemap, purge Varnish and CloudFront for /sitemap*, then resubmit /sitemap.xml in Search Console.","owner":"Global web team (developer)","effort":"1-2 hours","priority":"P0 - do first","verify":"curl https://www.artofliving.org/sitemap/argentina.xml lists \u003cloc> entries again (916 URLs on 14 Oct); Search Console > Sitemaps shows 0 errors for /sitemap.xml and /sitemap/argentina.xml","blocked":"","stage":"discover"},{"id":"A02","phase":"Week 1","why":"the pages that earn the clicks (homepage, courses) were never in the Argentina sitemap; on 14 Oct, pages missing from it earned 77% of 90-day clicks.","task":"Add the new-platform pages to the Argentina sitemap","action":"When the sitemap is regenerated, include /ar-es/, every /ar-es/courses/* page, /ar-es/membership, /ar-es/ya-soy-respirador, /ar-es/about-us/* and every center page. Remove the 9 URLs that redirect and the internal comunicaciones/*, india-1/* and India-2/* pages.","owner":"Global web team (developer)","effort":"2-4 hours","priority":"P0","verify":"Sitemap contains /ar-es/, /ar-es/courses/art-of-living-part-one and /ar-es/membership; no listed URL returns a redirect or error","blocked":"A01","stage":"discover"},{"id":"A03","phase":"Week 1","why":"membership searches bring 9,911 Argentine impressions a month, but Google has never crawled the page built for them, so they land on other pages.","task":"Make /ar-es/membership a Spanish page and get it crawled","action":"Title \"Membresía El Arte de Vivir: qué incluye y cómo sumarte\"; H1 \"Membresía de El Arte de Vivir\"; add a meta description; link it with the anchor \"Membresía\" from the homepage menu, /courses/all-courses, Parte 1 and ya-soy-respirador. Then request indexing in URL Inspection.","owner":"Argentina web editor; global web team for the sitemap","effort":"2 hours","priority":"P0","verify":"URL Inspection no longer says \"URL is unknown to Google\"; Spanish title in view-source; membership searches start landing on /ar-es/membership","blocked":"A04 decision; A34 for request indexing","stage":"discover"},{"id":"A04","phase":"Week 1","why":"five pages split membership searches between them (homepage, ya-soy-respirador, Parte 1, all-courses, login), so none ranks or converts well.","task":"Decide which page owns \"membresía\"","action":"Pick ONE page: /ar-es/membership or /ar-es/ya-soy-respirador (\"Ya Soy Respirador: Comunidad, SKY y Cursos\"). Link the other to it. Check whether people want to join or log in: the login page /ar-es/user also gets membership searches.","owner":"Argentina team lead","effort":"30 min decision","priority":"P1","verify":"One page named as the membership page in seo/backlog.md; the other links to it","blocked":"","stage":"relevance"},{"id":"A05","phase":"Week 1","why":"the Drupal login page shows up for membership searches (425 impressions) and sends people to a dead end instead of the membership page.","task":"Noindex the login page /ar-es/user","action":"Add a noindex robots tag to /ar-es/user (Drupal \"User account\" page, English title).","owner":"Global web team (developer)","effort":"15 min","priority":"P1","verify":"View source shows \u003cmeta name=\"robots\" content=\"noindex\">","blocked":"","stage":"understand"},{"id":"A06","phase":"Today","why":"people who type the brand domain land on the global or US site, not Argentina; a 301 sends them, and the link value, to /ar-es/.","task":"Send elartedevivir.org to /ar-es/ permanently","action":"Change https://www.elartedevivir.org and http://elartedevivir.org from a 302 to https://www.artofliving.org (which sends a US visitor to /us-en) to a 301 straight to https://www.artofliving.org/ar-es/.","owner":"Domain / DNS admin","effort":"30 min","priority":"P0","verify":"curl -I https://www.elartedevivir.org returns 301 with Location https://www.artofliving.org/ar-es/","blocked":"Who controls the domain (open question 6)","stage":"discover"},{"id":"A07","phase":"Today","why":"the bare domain shows a browser security warning (certificate expired in 2022), which loses visitors and looks untrustworthy.","task":"Replace the expired certificate on elartedevivir.org","action":"Install a valid certificate on the bare domain https://elartedevivir.org (today: self-signed, issued to an internal AWS server name, expired January 2022).","owner":"Domain / DNS admin","effort":"1 hour","priority":"P0","verify":"https://elartedevivir.org opens with no browser warning and lands on /ar-es/","blocked":"A06","stage":"discover"},{"id":"A08","phase":"Week 1","why":"placeholder Open Graph tags make WhatsApp and Facebook shares show no image or a broken link, and WhatsApp is how courses spread in Argentina.","task":"Delete the placeholder Open Graph block","action":"Remove the template block containing og:image \"URL-DE-LA-IMAGEN-OG\" and og:url \"https:www.artofliving.orgar-es\". Keep the second, correct block.","owner":"Global web team (developer)","effort":"1 hour","priority":"P0","verify":"View source of /ar-es/: exactly one og:image with a real image URL and one og:url = https://www.artofliving.org/ar-es/","blocked":"","stage":"choose"},{"id":"A09","phase":"Week 1","why":"the H1 tells Google what a page is about; the homepage has 5 banner-label H1s and Parte 1, the main course page, has none.","task":"One descriptive H1 per page","action":"Homepage: turn the 5 carousel H1s into H2s or plain text and add H1 \"El Arte de Vivir Argentina: cursos de meditación, respiración y yoga\". Parte 1: add H1 \"El Arte de Vivir Parte 1: curso de respiración y meditación\". Gurudev: keep one H1, \"Gurudev Sri Sri Ravi Shankar\". All courses: change H1 \"CURSOS\" to \"Cursos de El Arte de Vivir en Argentina\".","owner":"Global web team (template); Argentina editor (text)","effort":"2-4 hours","priority":"P1","verify":"Each page has exactly one H1 in view-source","blocked":"","stage":"understand"},{"id":"A10","phase":"Week 1","why":"two descriptions confuse what Google shows in results, and lang=\"es\" doesn't tell it the page is for Argentina.","task":"Remove the duplicate meta description and set lang=\"es-AR\"","action":"The new template prints the meta description twice and declares lang=\"es\". Output one description and lang=\"es-AR\".","owner":"Global web team (developer)","effort":"1 hour","priority":"P1","verify":"View source: one \u003cmeta name=\"description\">, \u003chtml lang=\"es-AR\">","blocked":"","stage":"understand"},{"id":"A11","phase":"Week 2","why":"an English \"Page Footer\" heading and a code fragment appear on Spanish pages; small, but they make the template look unfinished to Google and visitors.","task":"Remove template leftovers","action":"Delete the English H2 \"Page Footer\" and the H3 that prints the code fragment '+be.name+'.","owner":"Global web team (developer)","effort":"30 min","priority":"P2","verify":"Neither string appears in the homepage source","blocked":"","stage":"understand"},{"id":"A12","phase":"Weeks 2-4","why":"without hreflang, Google sends Argentine searchers to India and US pages; the ar-es share of their clicks fell from 89% to 83% in a month.","task":"Add hreflang through one central map in the sitemaps","action":"Annotate ar-es \u003c-> ar-en and every Spanish-language country section in both directions with an x-default, generated centrally in the sitemaps (the method the 15 Oct global site-structure study recommends) rather than page by page.","owner":"Global web team (developer)","effort":"2-5 days (platform-wide)","priority":"P1","verify":"Sitemaps contain xhtml:link alternates; URL Inspection shows the Argentine page chosen for Argentine searchers","blocked":"A01","stage":"place"},{"id":"A13","phase":"Week 1","why":"center pages are where local searches land, yet their titles are in English; their click-through fell from 1.46% a year ago to 0.33%.","task":"Spanish titles and an H1 on every center page","action":"Title pattern \"Yoga y meditación en {Ciudad} | El Arte de Vivir\" and H1 \"El Arte de Vivir en {Ciudad}\". Ready-made titles for 16 cities are in seo/reports/2026-10-15-title-optimization.md. Merge duplicate city pages first (A14) so two pages do not share a title.","owner":"Argentina web editor (if the CMS allows); otherwise global web team","effort":"1 day","priority":"P0","verify":"Titles live in view-source; Search Console click-through on center pages rises after 4 weeks","blocked":"Open question 1: can Argentina editors edit titles?","stage":"place"},{"id":"A14","phase":"Weeks 2-4","why":"several pages per city (3 for Rosario, 3 for La Plata) compete with each other, so each ranks weaker than one page would.","task":"One page per center: merge duplicate city pages","action":"Rosario (rosario-0, sede-rosario-0, sede-rosario-zona-0), La Plata (la-plata-1, sede-la-plata-0, sede-la-plata-norte-0), Córdoba (córdoba-0, córdoba-capital-0), Neuquén, Salta, Mendoza, Pilar, Tucumán: keep one page each and 301 the rest.","owner":"Argentina team (decide); global web team (301s)","effort":"1-2 days","priority":"P1","verify":"Each city has one live URL; the others return 301 to it","blocked":"Official list of active centers (open question 2)","stage":"place"},{"id":"A15","phase":"Month 2","why":"an address and LocalBusiness markup let Google show the center for \"near me\" and map searches; today center pages have neither.","task":"Center page template with address and LocalBusiness markup","action":"Add address, map, phone/WhatsApp, upcoming courses (in the page source) and LocalBusiness markup to every center page.","owner":"Global web team (developer)","effort":"3-5 days","priority":"P1","verify":"Rich Results Test is valid for LocalBusiness on a center page","blocked":"A14","stage":"place"},{"id":"A16","phase":"Weeks 2-4","why":"Business Profiles drive the map results for local searches; unverified profiles can carry wrong hours and links, or none.","task":"Verify the five biggest centers' Business Profiles","action":"CABA, Palermo, Belgrano, Córdoba, Mendoza: verify ownership; link each profile's website button to its center page with ?utm_source=google&utm_medium=organic&utm_campaign=gbp_\u003csede>; set categories, hours and photos per the standard in the plan (Section 2).","owner":"Center volunteers + Argentina team","effort":"2 hours per center","priority":"P1","verify":"Each profile's website link opens its center page","blocked":"Business Profile access (open question 3)","stage":"place"},{"id":"A17","phase":"Week 1","why":"these URLs still get search traffic (certificaciones had 22,319 impressions in a year) but now show an error page.","task":"Redirect the four broken URLs","action":"301 /ar-es/certificaciones-de-el-arte-de-vivir (403), /ar-es/sudarshan-kriya (403), /ar-es/node/1152031 (403) and /ar-es/sede-vicente-l%C3%B3pez-0 (404) to their closest live page.","owner":"Global web team (developer)","effort":"1 hour","priority":"P1","verify":"Each URL returns 301 to a page that returns 200","blocked":"","stage":"discover"},{"id":"A18","phase":"Week 2","why":"each extra redirect hop slows visitors and loses some link value, and temporary (302) redirects don't pass ranking signals.","task":"Remove redirect chains and temporary redirects","action":"/ar-es/home, /ar-es/new-home and /ar-es/el-arte-de-vivir-argentina should 301 straight to /ar-es/ (today two hops). /ar-es/profesorado-de-yoga: 302 -> 301 if the move is permanent. /ar-es/administración-del-tiempo: stop sending visitors to /ar-es/admin/.","owner":"Global web team (developer)","effort":"1 hour","priority":"P2","verify":"One 301 hop for each URL","blocked":"","stage":"discover"},{"id":"A19","phase":"Week 1","why":"three Tag Manager containers can count one registration two or three times, so every conversion KPI is unreliable until this is fixed.","task":"Audit the three Tag Manager containers","action":"GTM-W5J3LPBS and GTM-T25R2DBS load on new-template pages; GTM-N2J496 loads on old-template pages. List every conversion tag in each, keep one container per page, and make one test registration per program.","owner":"Marketing analytics + global web team","effort":"1 day","priority":"P0 (before trusting any KPI)","verify":"Tag Assistant shows exactly one conversion per test registration","blocked":"","stage":"measure"},{"id":"A20","phase":"Weeks 2-4","why":"course dates are loaded by script, so Google can't see them and can't show dates or prices in results.","task":"Put course dates in the page source and add Course/Event markup","action":"Render upcoming dates, venue, price and modality in the initial HTML of each /ar-es/courses/* page; add Course plus Event (CourseInstance) markup.","owner":"Global web team (developer)","effort":"3-5 days","priority":"P1","verify":"View source of Parte 1 shows dates; Rich Results Test is valid","blocked":"","stage":"understand"},{"id":"A21","phase":"Week 2","why":"the markup names the organization just \"Argentina\" with no links to its profiles, so Google can't connect the site to El Arte de Vivir.","task":"Fix the Organization markup","action":"Name the organization \"El Arte de Vivir Argentina\" (now \"Argentina\"); fill sameAs with the Instagram, Facebook and YouTube profiles; give LocalBusiness a real address or remove it.","owner":"Global web team (developer)","effort":"2 hours","priority":"P2","verify":"Rich Results Test shows the correct name and sameAs","blocked":"","stage":"understand"},{"id":"A22","phase":"Week 1","why":"internal pages (a 2016 price list, India pages) are indexed and can surface in search with outdated or off-topic content.","task":"Noindex the comms-team and India pages","action":"Add noindex (or a login) to /ar-es/comunicaciones/* (includes a 2016 price list) and /ar-es/india-1/*, /ar-es/India-2/*.","owner":"Argentina web editor or global web team","effort":"1 hour","priority":"P2","verify":"noindex present on each page","blocked":"","stage":"understand"},{"id":"A23","phase":"Week 1","why":"robots.txt lists llms.txt files as sitemaps, which they are not; a small fix that removes an error from Google's sitemap reports.","task":"Remove the two llms.txt \"Sitemap:\" lines","action":"Delete \"Sitemap: https://www.artofliving.org/llms.txt\" and \"Sitemap: https://www.artofliving.org/in-en/llms.txt\" from robots.txt (they are not sitemaps). Keep the llms.txt files.","owner":"Global web team (developer)","effort":"10 min","priority":"P2","verify":"robots.txt lists only XML sitemaps","blocked":"","stage":"discover"},{"id":"A24","phase":"Month 2","why":"a slow mobile site (Lighthouse 67, 2.4 MB of unused JavaScript) loses visitors, and 71% of Argentine clicks are on mobile.","task":"Cut unused JavaScript, cache the homepage, raise HSTS","action":"Remove or defer the 2.4 MB of unused JavaScript; cache the anonymous homepage HTML at the CDN (today \"private, no-cache\", CloudFront Miss); raise HSTS from 60 seconds to one year.","owner":"Global web team (developer)","effort":"3-5 days","priority":"P2","verify":"Mobile Lighthouse Total Blocking Time under 200 ms; response header X-Cache: Hit; HSTS max-age=31536000","blocked":"","stage":"relevance"},{"id":"A25","phase":"Week 1","why":"these pages already rank on page 1 for big searches but are rarely clicked; better titles are the cheapest way to get more clicks.","task":"Retitle six high-impression pages","action":"saludo-al-sol, posturas-beneficiosas-del-yoga, ayurveda-0, meditación, visión and meditation-videos (English title): use the titles in seo/reports/2026-10-15-title-optimization.md (saludo-al-sol: use \"Saludo al sol paso a paso: 12 posturas y respiración\" from the refresh plan).","owner":"Argentina web editor","effort":"2 hours","priority":"P1","verify":"New titles in view-source; click-through in Search Console after 4 weeks","blocked":"Open question 1 (CMS access)","stage":"choose"},{"id":"A26","phase":"Weeks 2-4","why":"saludo al sol gets about 1,100 Argentine impressions a month but only 1 click; the article needs to answer the search better.","task":"Rewrite the Saludo al sol article","action":"Write the refresh (blog-refresher Phase 6) once the four questions in the refresh plan are answered: title choice, official 12-posture sequence and mantras, video, author and reviewer.","owner":"Argentina content team + a Sri Sri Yoga teacher","effort":"1-2 days","priority":"P2","verify":"Page updated with a visible \"Última actualización\" date","blocked":"Answers to refresh plan Phase 5","stage":"relevance"},{"id":"A27","phase":"Weeks 2-4","why":"Chile's and Mexico's Gurudev pages outrank Argentina's for \"gurudev\", and the page has two H1s and no Person markup.","task":"Fix the Gurudev biography page","action":"One H1; Person markup with sameAs (Wikipedia, Wikidata, official site); link it from /ar-es/visión and the homepage; add his visits to Argentina.","owner":"Argentina web editor; global web team for markup","effort":"0.5 day","priority":"P1","verify":"Rich Results Test shows a Person; one H1","blocked":"","stage":"relevance"},{"id":"A28","phase":"Month 2","why":"searches like \"secta\" and \"opiniones\" are answered by other sites; our own clear FAQ page lets people hear it from us.","task":"Publish the FAQ and transparency page","action":"Content piece 2 in the plan: \"¿Qué es El Arte de Vivir? Preguntas frecuentes, opiniones y transparencia\". Read the current results for \"secta\" and \"opiniones\" first.","owner":"Argentina comms + legal","effort":"1 week","priority":"P1","verify":"Page live and linked from the footer and the testimonial page","blocked":"Comms and legal sign-off","stage":"relevance"},{"id":"A29","phase":"Months 2-3","why":"non-branded clicks are flat at about 175 a month; pages for corporate wellbeing and online courses open new search demand.","task":"Publish the corporate wellbeing and online course pages","action":"Content pieces 3 and 4 in the plan.","owner":"Argentina content team","effort":"2 weeks","priority":"P2","verify":"Both pages live, in the sitemap and linked from all-courses","blocked":"Client names with permission","stage":"relevance"},{"id":"A30","phase":"Week 1","why":"without rank tracking or an AI-answer baseline, we can't tell whether any fix in this tracker worked.","task":"Start weekly rank tracking and the AI-answer test","action":"Track the 46 keywords weekly in Semrush set to Argentina; run the 25 questions in seo/ai-prompts.md once and log the answers.","owner":"Argentina marketing","effort":"2 hours","priority":"P1","verify":"First weekly rank report and AI log saved in seo/","blocked":"","stage":"measure"},{"id":"A31","phase":"Week 1","why":"registrations are the real goal; without them by center and program we can't tell which search work brings students.","task":"Send registrations by center and program (12 months)","action":"Export registrations and free intro sign-ups by center and program, with source/UTM, for Nov 2025 - Oct 2026.","owner":"Argentina team","effort":"1 day","priority":"P0 (primary KPI)","verify":"File saved in docs/","blocked":"","stage":"measure"},{"id":"A32","phase":"Week 2","why":"reviews drive local map rankings and trust, and asking every participant is free and simple.","task":"Start the review request at the end of every course","action":"QR card plus the WhatsApp template in the plan (Section 5); ask every participant, no incentives.","owner":"Center coordinators","effort":"1 hour to set up","priority":"P1","verify":"New reviews per center per month logged","blocked":"A16","stage":"place"},{"id":"A33","phase":"Weekly","why":"clicks fell 21% in a month for reasons not yet confirmed; a weekly check shows whether the sitemap fix brings them back.","task":"Watch the weekly click trend","action":"Every Monday: Argentine clicks and impressions to /ar-es, branded vs non-branded, from Search Console. Note the date the sitemaps come back (A01) so any recovery can be measured against it.","owner":"SEO lead","effort":"30 min a week","priority":"P1","verify":"Weekly line added to seo/log.md","blocked":"","stage":"measure"},{"id":"A34","phase":"Week 1","why":"the Argentina owner needs full Search Console access to resubmit sitemaps and request indexing, which A01 and A03 depend on.","task":"Get full access to Search Console for the Argentina owner","action":"The analysis account is a restricted user: it cannot resubmit sitemaps or request indexing. Give the Argentina SEO owner full or owner access on https://www.artofliving.org/.","owner":"Search Console property owner","effort":"15 min","priority":"P1","verify":"Argentina owner can open Sitemaps and URL Inspection > Request indexing","blocked":"","stage":"discover"},{"id":"A35","phase":"Week 1","why":"live pages send visitors to a test copy of the site that is open to the public and marked for indexing; it can leak into Google.","task":"Replace links to test.…artofliving.org and lock the test host","action":"Replace the links in Parte 1 body text (to /about-us/sudarshan-kriya), Parte 2 and SKY Campus (to Parte 1) with www.artofliving.org links; fix the older template menu link to Parte 2; put the test host behind a login or IP allowlist with X-Robots-Tag: noindex","owner":"Argentina web editor; global web team","effort":"1 hour (links); half a day (test host)","priority":"P0","verify":"No \"test.prod\" in view-source of Parte 1, Parte 2, SKY Campus and palermo-0; the test host asks for a login","blocked":"","stage":"discover"},{"id":"A36","phase":"Week 1","why":"SKY Campus ranks at position 2 but gets 0.35% of clicks because its title is just \"Sky Campus\" with no description.","task":"Spanish title and description for SKY Campus, Sanyam, intro-talk and YES","action":"Title of 50-60 characters ending \"| El Arte de Vivir\" and a 140-160 character description on /courses/sky-campus (title is \"Sky Campus\", no description, no og:description), /courses/sanyam and /intro-talk (no description); shorten the 78-character YES title. SKY Campus first","owner":"Argentina web editor","effort":"1 hour","priority":"P1","verify":"New titles and descriptions in view-source; SKY Campus click-through in Search Console after 4 weeks","blocked":"Open question 1 (CMS access)","stage":"choose"},{"id":"A37","phase":"Week 1","why":"every older-template page links to a dead page (404) in the footer, which looks broken to visitors and Google.","task":"Fix the 404 footer link /ar-es/@elartedeviviroficial","action":"Point the footer link at the full Instagram profile URL (confirm the handle first)","owner":"Global web team (older template)","effort":"15 minutes","priority":"P1","verify":"The footer link opens the Instagram profile on palermo-0 and terms-of-use","blocked":"","stage":"discover"},{"id":"A38","phase":"Month 1","why":"the footer widget is pasted as a whole HTML page, so every page carries a second title; harmless today but fragile.","task":"Strip the virtual-assistant footer embed down to its script and widget","action":"In the custom_content_footer box, remove the \u003c!DOCTYPE>, \u003chtml>, \u003chead> and \u003ctitle>Asistente Virtual...\u003c/title> wrapper; keep only the widget script and div","owner":"Argentina web editor or global web team","effort":"30 minutes","priority":"P2","verify":"One \u003ctitle> and one \u003chtml> per page in view-source","blocked":"","stage":"understand"},{"id":"A39","phase":"Month 2","why":"Spanish searches like \"los 7 chakras\" (513) and guided sleep meditation (425) have no Spanish page, so Google shows English ones.","task":"Spanish chakras guide; guided sleep meditation inside content piece 5","action":"Publish a Spanish chakras guide on /ar-es; add a guided sleep meditation section to plan piece 5 (\"Cómo dormir mejor\")","owner":"Argentina content team","effort":"2 days","priority":"P2","verify":"Pages live; \"los 7 chakras\" impressions on /ar-es in Search Console","blocked":"","stage":"relevance"}];
+const TASKS_ES = {
+ "A01": {
+  "id": "A01",
+  "task": "Restaurar los sitemaps XML",
+  "why": "Google aprende sobre páginas nuevas y modificadas a partir de los sitemaps; los 103 sitemaps de la plataforma principal ahora fallan, por lo que las nuevas páginas de Argentina (como la de membresía) no son descubiertas.",
+  "action": "Cada sitemap probado (/sitemap.xml, /sitemap/argentina.xml, /sitemap/argentina/yoga.xml, /sitemap/united_states.xml) devuelve HTTP 200 con un cuerpo vacío (Varnish HIT, X-Drupal-Cache MISS). Regenerar el sitemap XML de Drupal, purgar Varnish y CloudFront para /sitemap*, luego volver a enviar /sitemap.xml en Search Console.",
+  "owner": "equipo web global (desarrollador)",
+  "effort": "1-2 horas",
+  "verify": "curl https://www.artofliving.org/sitemap/argentina.xml vuelve a listar entradas \u003cloc> (916 URLs el 14 de octubre); Search Console > Sitemaps muestra 0 errores para /sitemap.xml y /sitemap/argentina.xml",
+  "blocked": ""
+ },
+ "A02": {
+  "id": "A02",
+  "task": "Agregar las páginas de la nueva plataforma al sitemap de Argentina",
+  "why": "las páginas que generan clics (página de inicio, cursos) nunca estuvieron en el sitemap de Argentina; el 14 de octubre, las páginas que faltaban en él generaron el 77% de los clics de 90 días.",
+  "action": "Cuando se regenere el sitemap, incluir /ar-es/, cada página /ar-es/courses/*, /ar-es/membership, /ar-es/ya-soy-respirador, /ar-es/about-us/* y cada página de centro. Eliminar las 9 URLs que redirigen y las páginas internas comunicaciones/*, india-1/* e India-2/*.",
+  "owner": "equipo web global (desarrollador)",
+  "effort": "2-4 horas",
+  "verify": "El sitemap contiene /ar-es/, /ar-es/courses/art-of-living-part-one y /ar-es/membership; ninguna URL listada devuelve una redirección o error",
+  "blocked": "A01"
+ },
+ "A03": {
+  "id": "A03",
+  "task": "Convertir /ar-es/membership en una página en español y lograr que sea rastreada",
+  "why": "las búsquedas de membresía generan 9.911 impresiones argentinas al mes, pero Google nunca ha rastreado la página creada para ellas, por lo que los usuarios aterrizan en otras páginas.",
+  "action": "Título \"Membresía El Arte de Vivir: qué incluye y cómo sumarte\"; H1 \"Membresía de El Arte de Vivir\"; agregar una meta descripción; enlazarla con el ancla \"Membresía\" desde el menú de la página de inicio, /courses/all-courses, Parte 1 y ya-soy-respirador. Luego, solicitar la indexación en Inspección de URL.",
+  "owner": "editor web de Argentina; equipo web global para el sitemap",
+  "effort": "2 horas",
+  "verify": "Inspección de URL ya no dice \"URL desconocida para Google\"; título en español en el código fuente; las búsquedas de membresía comienzan a aterrizar en /ar-es/membership",
+  "blocked": "Decisión A04; A34 para solicitar indexación"
+ },
+ "A04": {
+  "id": "A04",
+  "task": "Decidir qué página es la principal para \"membresía\"",
+  "why": "cinco páginas se dividen las búsquedas de membresía (página de inicio, ya-soy-respirador, Parte 1, todos los cursos, inicio de sesión), por lo que ninguna posiciona o convierte bien.",
+  "action": "Elegir UNA página: /ar-es/membership o /ar-es/ya-soy-respirador (\"Ya Soy Respirador: Comunidad, SKY y Cursos\"). Enlazar la otra a esta. Verificar si las personas quieren unirse o iniciar sesión: la página de inicio de sesión /ar-es/user también recibe búsquedas de membresía.",
+  "owner": "líder del equipo de Argentina",
+  "effort": "30 min de decisión",
+  "verify": "Una página nombrada como la página de membresía en seo/backlog.md; la otra enlaza a ella",
+  "blocked": ""
+ },
+ "A05": {
+  "id": "A05",
+  "task": "Aplicar noindex a la página de inicio de sesión /ar-es/user",
+  "why": "la página de inicio de sesión de Drupal aparece en las búsquedas de membresía (425 impresiones) y envía a los usuarios a un callejón sin salida en lugar de a la página de membresía.",
+  "action": "Agregar una etiqueta robots noindex a /ar-es/user (página de Drupal \"User account\", título en inglés).",
+  "owner": "equipo web global (desarrollador)",
+  "effort": "15 min",
+  "verify": "El código fuente muestra \u003cmeta name=\"robots\" content=\"noindex\">",
+  "blocked": ""
+ },
+ "A06": {
+  "id": "A06",
+  "task": "Redirigir elartedevivir.org a /ar-es/ de forma permanente",
+  "why": "las personas que escriben el dominio de la marca aterrizan en el sitio global o de EE. UU., no en el de Argentina; una redirección 301 los envía, y el valor del enlace, a /ar-es/.",
+  "action": "Cambiar https://www.elartedevivir.org y http://elartedevivir.org de una redirección 302 a https://www.artofliving.org (que envía a un visitante de EE. UU. a /us-en) a una redirección 301 directa a https://www.artofliving.org/ar-es/.",
+  "owner": "Administrador de dominio / DNS",
+  "effort": "30 min",
+  "verify": "curl -I https://www.elartedevivir.org devuelve 301 con Location https://www.artofliving.org/ar-es/",
+  "blocked": "Quién controla el dominio (pregunta abierta 6)"
+ },
+ "A07": {
+  "id": "A07",
+  "task": "Reemplazar el certificado caducado en elartedevivir.org",
+  "why": "el dominio raíz muestra una advertencia de seguridad del navegador (certificado caducado en 2022), lo que hace perder visitantes y parece poco confiable.",
+  "action": "Instalar un certificado válido en el dominio raíz https://elartedevivir.org (hoy: autofirmado, emitido a un nombre de servidor interno de AWS, caducado en enero de 2022).",
+  "owner": "Administrador de dominio / DNS",
+  "effort": "1 hora",
+  "verify": "https://elartedevivir.org abre sin advertencia del navegador y aterriza en /ar-es/",
+  "blocked": "A06"
+ },
+ "A08": {
+  "id": "A08",
+  "task": "Eliminar el bloque de Open Graph de marcador de posición",
+  "why": "las etiquetas de Open Graph de marcador de posición hacen que las publicaciones compartidas en WhatsApp y Facebook no muestren imagen o un enlace roto, y WhatsApp es cómo se difunden los cursos en Argentina.",
+  "action": "Eliminar el bloque de plantilla que contiene og:image \"URL-DE-LA-IMAGEN-OG\" y og:url \"https:www.artofliving.orgar-es\". Mantener el segundo bloque, el correcto.",
+  "owner": "equipo web global (desarrollador)",
+  "effort": "1 hora",
+  "verify": "Código fuente de /ar-es/: exactamente una og:image con una URL de imagen real y una og:url = https://www.artofliving.org/ar-es/",
+  "blocked": ""
+ },
+ "A09": {
+  "id": "A09",
+  "task": "Un H1 descriptivo por página",
+  "why": "el H1 le dice a Google de qué trata una página; la página de inicio tiene 5 H1 de etiquetas de banner y Parte 1, la página principal del curso, no tiene ninguno.",
+  "action": "Página de inicio: convertir los 5 H1 del carrusel en H2 o texto plano y agregar H1 \"El Arte de Vivir Argentina: cursos de meditación, respiración y yoga\". Parte 1: agregar H1 \"El Arte de Vivir Parte 1: curso de respiración y meditación\". Gurudev: mantener un H1, \"Gurudev Sri Sri Ravi Shankar\". Todos los cursos: cambiar H1 \"CURSOS\" a \"Cursos de El Arte de Vivir en Argentina\".",
+  "owner": "equipo web global (plantilla); editor de Argentina (texto)",
+  "effort": "2-4 horas",
+  "verify": "Cada página tiene exactamente un H1 en el código fuente",
+  "blocked": ""
+ },
+ "A10": {
+  "id": "A10",
+  "task": "Eliminar la meta descripción duplicada y establecer lang=\"es-AR\"",
+  "why": "dos descripciones confunden lo que Google muestra en los resultados, y lang=\"es\" no le indica que la página es para Argentina.",
+  "action": "La nueva plantilla imprime la meta descripción dos veces y declara lang=\"es\". Mostrar una descripción y lang=\"es-AR\".",
+  "owner": "equipo web global (desarrollador)",
+  "effort": "1 hora",
+  "verify": "Código fuente: una \u003cmeta name=\"description\">, \u003chtml lang=\"es-AR\">",
+  "blocked": ""
+ },
+ "A11": {
+  "id": "A11",
+  "task": "Eliminar restos de plantilla",
+  "why": "un encabezado en inglés \"Page Footer\" y un fragmento de código aparecen en páginas en español; pequeño, pero hacen que la plantilla parezca inacabada para Google y los visitantes.",
+  "action": "Eliminar el H2 en inglés \"Page Footer\" y el H3 que imprime el fragmento de código '+be.name+'.",
+  "owner": "equipo web global (desarrollador)",
+  "effort": "30 min",
+  "verify": "Ninguna de las cadenas aparece en el código fuente de la página de inicio",
+  "blocked": ""
+ },
+ "A12": {
+  "id": "A12",
+  "task": "Agregar hreflang a través de un mapa central en los sitemaps",
+  "why": "sin hreflang, Google envía a los buscadores argentinos a páginas de India y EE. UU.; la cuota de clics de ar-es cayó del 89% al 83% en un mes.",
+  "action": "Anotar ar-es \u003c-> ar-en y cada sección de país en español en ambas direcciones con un x-default, generado centralmente en los sitemaps (el método que recomienda el estudio de estructura del sitio global del 15 de octubre) en lugar de página por página.",
+  "owner": "equipo web global (desarrollador)",
+  "effort": "2-5 días (a nivel de plataforma)",
+  "verify": "Los sitemaps contienen alternativas xhtml:link; Inspección de URL muestra la página argentina elegida para los buscadores argentinos",
+  "blocked": "A01"
+ },
+ "A13": {
+  "id": "A13",
+  "task": "Títulos en español y un H1 en cada página de centro",
+  "why": "las páginas de centro son donde aterrizan las búsquedas locales, sin embargo, sus títulos están en inglés; su tasa de clics cayó del 1,46% hace un año al 0,33%.",
+  "action": "Patrón de título \"Yoga y meditación en {Ciudad} | El Arte de Vivir\" y H1 \"El Arte de Vivir en {Ciudad}\". Los títulos predefinidos para 16 ciudades están en seo/reports/2026-10-15-title-optimization.md. Fusionar primero las páginas de ciudades duplicadas (A14) para que dos páginas no compartan un título.",
+  "owner": "editor web de Argentina (si el CMS lo permite); de lo contrario, equipo web global",
+  "effort": "1 día",
+  "verify": "Títulos visibles en el código fuente; la tasa de clics en Search Console en las páginas de centro aumenta después de 4 semanas",
+  "blocked": "Pregunta abierta 1: ¿pueden los editores de Argentina editar títulos?"
+ },
+ "A14": {
+  "id": "A14",
+  "task": "Una página por centro: fusionar páginas de ciudades duplicadas",
+  "why": "varias páginas por ciudad (3 para Rosario, 3 para La Plata) compiten entre sí, por lo que cada una posiciona más débilmente de lo que lo haría una sola página.",
+  "action": "Rosario (rosario-0, sede-rosario-0, sede-rosario-zona-0), La Plata (la-plata-1, sede-la-plata-0, sede-la-plata-norte-0), Córdoba (córdoba-0, córdoba-capital-0), Neuquén, Salta, Mendoza, Pilar, Tucumán: mantener una página por cada una y redirigir las demás con 301.",
+  "owner": "equipo de Argentina (decidir); equipo web global (redirecciones 301)",
+  "effort": "1-2 días",
+  "verify": "Cada ciudad tiene una URL activa; las otras devuelven 301 a ella",
+  "blocked": "Lista oficial de centros activos (pregunta abierta 2)"
+ },
+ "A15": {
+  "id": "A15",
+  "task": "Plantilla de página de centro con dirección y datos estructurados de LocalBusiness",
+  "why": "una dirección y datos estructurados de LocalBusiness permiten a Google mostrar el centro para búsquedas de \"cerca de mí\" y en mapas; hoy las páginas de centro no tienen ninguno.",
+  "action": "Agregar dirección, mapa, teléfono/WhatsApp, próximos cursos (en el código fuente de la página) y datos estructurados de LocalBusiness a cada página de centro.",
+  "owner": "equipo web global (desarrollador)",
+  "effort": "3-5 días",
+  "verify": "La Prueba de Resultados Enriquecidos es válida para LocalBusiness en una página de centro",
+  "blocked": "A14"
+ },
+ "A16": {
+  "id": "A16",
+  "task": "Verificar los Perfiles de Empresa de Google de los cinco centros más grandes",
+  "why": "Los Perfiles de Empresa de Google impulsan los resultados de mapas para búsquedas locales; los perfiles no verificados pueden tener horarios y enlaces incorrectos, o ninguno.",
+  "action": "CABA, Palermo, Belgrano, Córdoba, Mendoza: verificar la propiedad; enlazar el botón del sitio web de cada perfil a su página de centro con ?utm_source=google&utm_medium=organic&utm_campaign=gbp_\u003csede>; establecer categorías, horarios y fotos según el estándar del plan (Sección 2).",
+  "owner": "Voluntarios de centro + equipo de Argentina",
+  "effort": "2 horas por centro",
+  "verify": "El enlace del sitio web de cada perfil abre su página de centro",
+  "blocked": "Acceso al Perfil de Empresa de Google (pregunta abierta 3)"
+ },
+ "A17": {
+  "id": "A17",
+  "task": "Redirigir las cuatro URLs rotas",
+  "why": "estas URLs todavía reciben tráfico de búsqueda (certificaciones tuvo 22.319 impresiones en un año) pero ahora muestran una página de error.",
+  "action": "Redirigir con 301 /ar-es/certificaciones-de-el-arte-de-vivir (403), /ar-es/sudarshan-kriya (403), /ar-es/node/1152031 (403) y /ar-es/sede-vicente-l%C3%B3pez-0 (404) a su página activa más cercana.",
+  "owner": "equipo web global (desarrollador)",
+  "effort": "1 hora",
+  "verify": "Cada URL devuelve 301 a una página que devuelve 200",
+  "blocked": ""
+ },
+ "A18": {
+  "id": "A18",
+  "task": "Eliminar cadenas de redireccionamiento y redireccionamientos temporales",
+  "why": "cada salto de redireccionamiento adicional ralentiza a los visitantes y pierde algo de valor de enlace, y los redireccionamientos temporales (302) no transmiten señales de clasificación.",
+  "action": "/ar-es/home, /ar-es/new-home y /ar-es/el-arte-de-vivir-argentina deben redirigir con 301 directamente a /ar-es/ (hoy dos saltos). /ar-es/profesorado-de-yoga: 302 -> 301 si el movimiento es permanente. /ar-es/administración-del-tiempo: dejar de enviar visitantes a /ar-es/admin/.",
+  "owner": "equipo web global (desarrollador)",
+  "effort": "1 hora",
+  "verify": "Un salto 301 para cada URL",
+  "blocked": ""
+ },
+ "A19": {
+  "id": "A19",
+  "task": "Auditar los tres contenedores de Tag Manager",
+  "why": "tres contenedores de Tag Manager pueden contar un registro dos o tres veces, por lo que cada KPI de conversión no es confiable hasta que esto se solucione.",
+  "action": "GTM-W5J3LPBS y GTM-T25R2DBS cargan en páginas de nueva plantilla; GTM-N2J496 carga en páginas de plantilla antigua. Listar cada etiqueta de conversión en cada uno, mantener un contenedor por página y realizar un registro de prueba por programa.",
+  "owner": "Análisis de marketing + equipo web global",
+  "effort": "1 día",
+  "verify": "Tag Assistant muestra exactamente una conversión por registro de prueba",
+  "blocked": ""
+ },
+ "A20": {
+  "id": "A20",
+  "task": "Poner las fechas de los cursos en el código fuente de la página y agregar datos estructurados de Curso/Evento",
+  "why": "las fechas de los cursos se cargan mediante script, por lo que Google no puede verlas y no puede mostrar fechas o precios en los resultados.",
+  "action": "Renderizar las próximas fechas, lugar, precio y modalidad en el HTML inicial de cada página /ar-es/courses/*; agregar datos estructurados de Curso más Evento (CourseInstance).",
+  "owner": "equipo web global (desarrollador)",
+  "effort": "3-5 días",
+  "verify": "El código fuente de Parte 1 muestra las fechas; la Prueba de Resultados Enriquecidos es válida",
+  "blocked": ""
+ },
+ "A21": {
+  "id": "A21",
+  "task": "Corregir los datos estructurados de Organización",
+  "why": "los datos estructurados nombran a la organización simplemente \"Argentina\" sin enlaces a sus perfiles, por lo que Google no puede conectar el sitio con El Arte de Vivir.",
+  "action": "Nombrar la organización \"El Arte de Vivir Argentina\" (ahora \"Argentina\"); rellenar sameAs con los perfiles de Instagram, Facebook y YouTube; dar a LocalBusiness una dirección real o eliminarlo.",
+  "owner": "equipo web global (desarrollador)",
+  "effort": "2 horas",
+  "verify": "La Prueba de Resultados Enriquecidos muestra el nombre y sameAs correctos",
+  "blocked": ""
+ },
+ "A22": {
+  "id": "A22",
+  "task": "Aplicar noindex a las páginas del equipo de comunicaciones y de India",
+  "why": "páginas internas (una lista de precios de 2016, páginas de India) están indexadas y pueden aparecer en búsquedas con contenido desactualizado o fuera de tema.",
+  "action": "Agregar noindex (o un inicio de sesión) a /ar-es/comunicaciones/* (incluye una lista de precios de 2016) y /ar-es/india-1/*, /ar-es/India-2/*.",
+  "owner": "editor web de Argentina o equipo web global",
+  "effort": "1 hora",
+  "verify": "noindex presente en cada página",
+  "blocked": ""
+ },
+ "A23": {
+  "id": "A23",
+  "task": "Eliminar las dos líneas \"Sitemap:\" de llms.txt",
+  "why": "robots.txt lista archivos llms.txt como sitemaps, lo cual no son; una pequeña corrección que elimina un error de los informes de sitemaps de Google.",
+  "action": "Eliminar \"Sitemap: https://www.artofliving.org/llms.txt\" y \"Sitemap: https://www.artofliving.org/in-en/llms.txt\" de robots.txt (no son sitemaps). Mantener los archivos llms.txt.",
+  "owner": "equipo web global (desarrollador)",
+  "effort": "10 min",
+  "verify": "robots.txt lista solo sitemaps XML",
+  "blocked": ""
+ },
+ "A24": {
+  "id": "A24",
+  "task": "Eliminar JavaScript no utilizado, cachear la página de inicio, aumentar HSTS",
+  "why": "un sitio móvil lento (Lighthouse 67, 2.4 MB de JavaScript no utilizado) pierde visitantes, y el 71% de los clics argentinos son en dispositivos móviles.",
+  "action": "Eliminar o diferir los 2.4 MB de JavaScript no utilizado; cachear el HTML de la página de inicio anónima en la CDN (hoy \"private, no-cache\", CloudFront Miss); aumentar HSTS de 60 segundos a un año.",
+  "owner": "equipo web global (desarrollador)",
+  "effort": "3-5 días",
+  "verify": "Tiempo total de bloqueo de Lighthouse móvil por debajo de 200 ms; encabezado de respuesta X-Cache: Hit; HSTS max-age=31536000",
+  "blocked": ""
+ },
+ "A25": {
+  "id": "A25",
+  "task": "Cambiar el título de seis páginas con muchas impresiones",
+  "why": "estas páginas ya posicionan en la página 1 para búsquedas importantes pero rara vez reciben clics; mejores títulos son la forma más económica de obtener más clics.",
+  "action": "saludo-al-sol, posturas-beneficiosas-del-yoga, ayurveda-0, meditación, visión y meditation-videos (título en inglés): usar los títulos en seo/reports/2026-10-15-title-optimization.md (saludo-al-sol: usar \"Saludo al sol paso a paso: 12 posturas y respiración\" del plan de actualización).",
+  "owner": "editor web de Argentina",
+  "effort": "2 horas",
+  "verify": "Nuevos títulos en el código fuente; tasa de clics en Search Console después de 4 semanas",
+  "blocked": "Pregunta abierta 1 (acceso al CMS)"
+ },
+ "A26": {
+  "id": "A26",
+  "task": "Reescribir el artículo de Saludo al sol",
+  "why": "saludo al sol obtiene aproximadamente 1.100 impresiones argentinas al mes pero solo 1 clic; el artículo necesita responder mejor a la búsqueda.",
+  "action": "Escribir la actualización (blog-refresher Fase 6) una vez que se respondan las cuatro preguntas del plan de actualización: elección del título, secuencia oficial de 12 posturas y mantras, video, autor y revisor.",
+  "owner": "equipo de contenido de Argentina + un profesor de Sri Sri Yoga",
+  "effort": "1-2 días",
+  "verify": "Página actualizada con una fecha visible de \"Última actualización\"",
+  "blocked": "Respuestas al plan de actualización Fase 5"
+ },
+ "A27": {
+  "id": "A27",
+  "task": "Corregir la página de biografía de Gurudev",
+  "why": "las páginas de Gurudev de Chile y México superan a la de Argentina para \"gurudev\", y la página tiene dos H1 y no tiene datos estructurados de Persona.",
+  "action": "Un H1; datos estructurados de Persona con sameAs (Wikipedia, Wikidata, sitio oficial); enlazarla desde /ar-es/visión y la página de inicio; agregar sus visitas a Argentina.",
+  "owner": "editor web de Argentina; equipo web global para los datos estructurados",
+  "effort": "0.5 día",
+  "verify": "La Prueba de Resultados Enriquecidos muestra una Persona; un H1",
+  "blocked": ""
+ },
+ "A28": {
+  "id": "A28",
+  "task": "Publicar la página de Preguntas Frecuentes y transparencia",
+  "why": "búsquedas como \"secta\" y \"opiniones\" son respondidas por otros sitios; nuestra propia página clara de Preguntas Frecuentes permite que la gente lo escuche de nosotros.",
+  "action": "Pieza de contenido 2 en el plan: \"¿Qué es El Arte de Vivir? Preguntas frecuentes, opiniones y transparencia\". Leer primero los resultados actuales para \"secta\" y \"opiniones\".",
+  "owner": "Comunicaciones de Argentina + legal",
+  "effort": "1 semana",
+  "verify": "Página activa y enlazada desde el pie de página y la página de testimonios",
+  "blocked": "Aprobación de comunicaciones y legal"
+ },
+ "A29": {
+  "id": "A29",
+  "task": "Publicar las páginas de bienestar corporativo y cursos en línea",
+  "why": "los clics no de marca están estancados en aproximadamente 175 al mes; las páginas de bienestar corporativo y cursos en línea abren nueva demanda de búsqueda.",
+  "action": "Piezas de contenido 3 y 4 en el plan.",
+  "owner": "equipo de contenido de Argentina",
+  "effort": "2 semanas",
+  "verify": "Ambas páginas activas, en el sitemap y enlazadas desde todos los cursos",
+  "blocked": "Nombres de clientes con permiso"
+ },
+ "A30": {
+  "id": "A30",
+  "task": "Iniciar el seguimiento semanal de ranking y la prueba de respuestas de IA",
+  "why": "sin seguimiento de ranking o una línea base de respuestas de IA, no podemos saber si alguna corrección en este seguimiento funcionó.",
+  "action": "Rastrear las 46 palabras clave semanalmente en Semrush configurado para Argentina; ejecutar las 25 preguntas en seo/ai-prompts.md una vez y registrar las respuestas.",
+  "owner": "Marketing de Argentina",
+  "effort": "2 horas",
+  "verify": "Primer informe semanal de ranking y registro de IA guardados en seo/",
+  "blocked": ""
+ },
+ "A31": {
+  "id": "A31",
+  "task": "Enviar registros por centro y programa (12 meses)",
+  "why": "los registros son el objetivo real; sin ellos por centro y programa no podemos saber qué trabajo de búsqueda atrae estudiantes.",
+  "action": "Exportar registros e inscripciones a introducciones gratuitas por centro y programa, con fuente/UTM, para Nov 2025 - Oct 2026.",
+  "owner": "equipo de Argentina",
+  "effort": "1 día",
+  "verify": "Archivo guardado en docs/",
+  "blocked": ""
+ },
+ "A32": {
+  "id": "A32",
+  "task": "Iniciar la solicitud de reseñas al final de cada curso",
+  "why": "las reseñas impulsan las clasificaciones de mapas locales y la confianza, y preguntar a cada participante es gratis y simple.",
+  "action": "Tarjeta QR más la plantilla de WhatsApp en el plan (Sección 5); preguntar a cada participante, sin incentivos.",
+  "owner": "Coordinadores de centro",
+  "effort": "1 hora para configurar",
+  "verify": "Nuevas reseñas por centro por mes registradas",
+  "blocked": "A16"
+ },
+ "A33": {
+  "id": "A33",
+  "task": "Observar la tendencia semanal de clics",
+  "why": "los clics cayeron un 21% en un mes por razones aún no confirmadas; una verificación semanal muestra si la corrección del sitemap los recupera.",
+  "action": "Cada lunes: clics e impresiones argentinas a /ar-es, de marca vs no de marca, desde Search Console. Anotar la fecha en que los sitemaps vuelvan a funcionar (A01) para que cualquier recuperación pueda medirse en relación con ella.",
+  "owner": "Líder de SEO",
+  "effort": "30 min a la semana",
+  "verify": "Línea semanal agregada a seo/log.md",
+  "blocked": ""
+ },
+ "A34": {
+  "id": "A34",
+  "task": "Obtener acceso completo a Search Console para el propietario de Argentina",
+  "why": "el propietario de Argentina necesita acceso completo a Search Console para volver a enviar sitemaps y solicitar indexación, de lo cual dependen A01 y A03.",
+  "action": "La cuenta de análisis es un usuario restringido: no puede volver a enviar sitemaps ni solicitar indexación. Dar al propietario de SEO de Argentina acceso completo o de propietario en https://www.artofliving.org/.",
+  "owner": "Propietario de la propiedad de Search Console",
+  "effort": "15 min",
+  "verify": "El propietario de Argentina puede abrir Sitemaps e Inspección de URL > Solicitar indexación",
+  "blocked": ""
+ },
+ "A35": {
+  "id": "A35",
+  "task": "Reemplazar enlaces a test.…artofliving.org y bloquear el host de prueba",
+  "why": "las páginas activas envían visitantes a una copia de prueba del sitio que está abierta al público y marcada para indexación; puede filtrarse en Google.",
+  "action": "Reemplazar los enlaces en el texto del cuerpo de Parte 1 (a /about-us/sudarshan-kriya), Parte 2 y SKY Campus (a Parte 1) con enlaces de www.artofliving.org; corregir el enlace del menú de la plantilla antigua a Parte 2; poner el host de prueba detrás de un inicio de sesión o una lista blanca de IP con X-Robots-Tag: noindex",
+  "owner": "editor web de Argentina; equipo web global",
+  "effort": "1 hora (enlaces); medio día (host de prueba)",
+  "verify": "No hay \"test.prod\" en el código fuente de Parte 1, Parte 2, SKY Campus y palermo-0; el host de prueba solicita un inicio de sesión",
+  "blocked": ""
+ },
+ "A36": {
+  "id": "A36",
+  "task": "Título y descripción en español para SKY Campus, Sanyam, charla introductoria y YES",
+  "why": "SKY Campus posiciona en el puesto 2 pero obtiene el 0,35% de los clics porque su título es solo \"Sky Campus\" sin descripción.",
+  "action": "Título de 50-60 caracteres que termine en \"| El Arte de Vivir\" y una descripción de 140-160 caracteres en /courses/sky-campus (el título es \"Sky Campus\", sin descripción, sin og:description), /courses/sanyam y /intro-talk (sin descripción); acortar el título de YES de 78 caracteres. SKY Campus primero",
+  "owner": "editor web de Argentina",
+  "effort": "1 hora",
+  "verify": "Nuevos títulos y descripciones en el código fuente; tasa de clics de SKY Campus en Search Console después de 4 semanas",
+  "blocked": "Pregunta abierta 1 (acceso al CMS)"
+ },
+ "A37": {
+  "id": "A37",
+  "task": "Corregir el enlace 404 del pie de página /ar-es/@elartedeviviroficial",
+  "why": "cada página de plantilla antigua enlaza a una página muerta (404) en el pie de página, lo que parece roto para los visitantes y Google.",
+  "action": "Apuntar el enlace del pie de página a la URL completa del perfil de Instagram (confirmar el nombre de usuario primero)",
+  "owner": "equipo web global (plantilla antigua)",
+  "effort": "15 minutos",
+  "verify": "El enlace del pie de página abre el perfil de Instagram en palermo-0 y términos-de-uso",
+  "blocked": ""
+ },
+ "A38": {
+  "id": "A38",
+  "task": "Reducir la incrustación del asistente virtual del pie de página a su script y widget",
+  "why": "el widget del pie de página se pega como una página HTML completa, por lo que cada página lleva un segundo título; inofensivo hoy pero frágil.",
+  "action": "En el cuadro custom_content_footer, eliminar el contenedor \u003c!DOCTYPE>, \u003chtml>, \u003chead> y \u003ctitle>Asistente Virtual...\u003c/title>; mantener solo el script y el div del widget",
+  "owner": "editor web de Argentina o equipo web global",
+  "effort": "30 minutos",
+  "verify": "Un \u003ctitle> y un \u003chtml> por página en el código fuente",
+  "blocked": ""
+ },
+ "A39": {
+  "id": "A39",
+  "task": "Guía de chakras en español; meditación guiada para dormir dentro de la pieza de contenido 5",
+  "why": "búsquedas en español como \"los 7 chakras\" (513) y meditación guiada para dormir (425) no tienen página en español, por lo que Google muestra las en inglés.",
+  "action": "Publicar una guía de chakras en español en /ar-es; agregar una sección de meditación guiada para dormir a la pieza 5 del plan (\"Cómo dormir mejor\")",
+  "owner": "equipo de contenido de Argentina",
+  "effort": "2 días",
+  "verify": "Páginas activas; impresiones de \"los 7 chakras\" en /ar-es en Search Console",
+  "blocked": ""
+ }
+};
+const STAGES = {discover:["1. Discover","1. Descubrir"],understand:["2. Understand","2. Entender"],place:["3. Language and place","3. Idioma y lugar"],relevance:["4. Relevance","4. Relevancia"],choose:["5. The click","5. El clic"],measure:["6. Measure","6. Medir"]};
+const PHASES = ["Today","Week 1","Week 2","Weeks 2-4","Month 1","Month 2","Months 2-3","Weekly"];
+const PHASES_ES = {"Today":"Hoy","Week 1":"Semana 1","Week 2":"Semana 2","Weeks 2-4":"Semanas 2-4","Month 1":"Mes 1","Month 2":"Mes 2","Months 2-3":"Meses 2-3","Weekly":"Semanal"};
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const $ = (s, r=document) => r.querySelector(s), $$ = (s, r=document) => [...r.querySelectorAll(s)];
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+/* build markup from escaped strings through DOMParser instead of assigning HTML directly */
+const fill = (el, markup) => { const doc = new DOMParser().parseFromString(markup, 'text/html'); el.replaceChildren(...doc.body.childNodes); };
+
+/* language: English by default, remembered per browser */
+let LANG = 'en';
+try { if (localStorage.getItem('seoExplainerLang') === 'es') LANG = 'es'; } catch (e) {}
+const tr = (en, es) => LANG === 'es' ? es : en;
+const langHooks = [];
+function setLang(l) {
+  LANG = l;
+  document.documentElement.lang = l;
+  try { localStorage.setItem('seoExplainerLang', l); } catch (e) {}
+  $$('.lang button').forEach(b => b.setAttribute('aria-pressed', b.dataset.lang === l));
+  $$('option[data-es]').forEach(o => { if (!o.dataset.en) o.dataset.en = o.textContent; o.textContent = l === 'es' ? o.dataset.es : o.dataset.en; });
+  document.title = tr('How Search Finds Us', 'Cómo nos encuentra Google');
+  $('video').forEach(v => v.pause());
+  langHooks.forEach(fn => fn());
+}
+$$('.lang button').forEach(b => b.addEventListener('click', () => setLang(b.dataset.lang)));
+
+/* hero: type the search, then reveal results */
+(function(){
+  const q = 'curso de respiración en buenos aires', el = $('#typed'), res = $$('[data-r]');
+  if (reduce) { el.textContent = q; res.forEach(r => r.classList.add('in')); return; }
+  let i = 0;
+  const tick = () => { el.textContent = q.slice(0, ++i); if (i < q.length) setTimeout(tick, 55 + Math.random()*50); else res.forEach((r, k) => setTimeout(() => r.classList.add('in'), 400 + k*450)); };
+  setTimeout(tick, 600);
+})();
+
+/* progress rail */
+(function(){
+  const stages = $$('.stage'), items = $$('.rail li'), bar = $('#fill');
+  const update = () => {
+    let cur = -1;
+    stages.forEach((s, i) => { if (s.getBoundingClientRect().top < innerHeight * 0.45) cur = i; });
+    items.forEach((li, i) => { li.classList.toggle('on', i === cur); li.classList.toggle('done', i < cur); });
+    bar.style.width = cur < 0 ? '0' : ((cur + 0.5) / 6 * 100) + '%';
+  };
+  addEventListener('scroll', update, {passive: true}); update();
+})();
+
+/* play visuals once when they enter view */
+const onView = (el, fn) => {
+  if (!('IntersectionObserver' in window)) return fn();
+  const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { fn(); io.disconnect(); } }), {threshold: .35});
+  io.observe(el);
+};
+const press = (btns, b) => btns.forEach(x => x.setAttribute('aria-pressed', x === b));
+
+/* 1: sitemap and crawler */
+(function(){
+  const lines = $('#smLines'), cnt = $('#smCount'), bot = $('#bot'), cap = $('#crawlCap');
+  for (let i = 0; i < 9; i++) { const d = document.createElement('div'); d.className = 'ln'; d.style.width = '0%'; lines.appendChild(d); }
+  const pos = {home:[170,30],p1:[70,100],cen:[170,100],blog:[275,100],mem:[60,180],pal:[160,180],sal:[272,180]};
+  const node = k => $(`.node[data-n="${k}"]`);
+  let timers = [], mode = '';
+  const caption = () => {
+    cap.textContent = mode === 'ok'
+      ? tr('14 October: 916 pages listed, so the crawler had a map. Even then the homepage and course pages were missing from it, and membership was never added.',
+           '14 de octubre: 916 páginas listadas, así que el rastreador tenía un mapa. Aun así faltaban la página de inicio y las de cursos, y la de membresía nunca se agregó.')
+      : mode === 'empty'
+        ? tr('Today: the sitemap is empty, so the crawler only finds what links lead to. Pages with weak links in, like membership, stay unknown.',
+             'Hoy: el sitemap está vacío, así que el rastreador solo encuentra lo que alcanzan los enlaces. Las páginas con pocos enlaces, como membresía, quedan desconocidas.')
+        : tr('The crawler follows links from page to page. Green pages were reached; dashed red pages were not.',
+             'El rastreador sigue enlaces de página en página. Las páginas verdes fueron alcanzadas; las rojas punteadas, no.');
+  };
+  const walk = (path, lit) => {
+    timers.forEach(clearTimeout); timers = [];
+    $$('.node').forEach(n => n.classList.remove('lit', 'miss'));
+    path.forEach((k, i) => timers.push(setTimeout(() => {
+      bot.setAttribute('transform', `translate(${pos[k][0]},${pos[k][1]})`);
+      if (lit.includes(k)) node(k).classList.add('lit');
+    }, reduce ? 0 : i * 650)));
+  };
+  const count = to => {
+    const from = parseInt(cnt.firstChild.textContent.replace(/\D/g, '')) || 0, t0 = performance.now(), d = reduce ? 1 : 900;
+    const step = now => { const p = Math.min(1, (now - t0) / d); cnt.firstChild.textContent = String(Math.round(from + (to - from) * p)); if (p < 1) requestAnimationFrame(step); };
+    requestAnimationFrame(step);
+  };
+  const set = m => {
+    mode = m; const ok = m === 'ok';
+    $$('.ln', lines).forEach((l, i) => { l.style.width = ok ? (55 + (i * 37) % 45) + '%' : '0%'; l.style.opacity = ok ? 1 : 0; });
+    count(ok ? 916 : 0);
+    if (ok) {
+      walk(['home','p1','cen','blog','pal','sal','mem'], ['home','p1','cen','blog','pal','sal']);
+      timers.push(setTimeout(() => node('mem').classList.add('miss'), reduce ? 0 : 7 * 650));
+    } else {
+      walk(['home','p1','cen','blog','pal'], ['home','p1','cen','pal']);
+      timers.push(setTimeout(() => { node('mem').classList.add('miss'); node('sal').classList.add('miss'); }, reduce ? 0 : 5 * 650));
+    }
+    caption();
+  };
+  const btns = $$('[data-sm]');
+  btns.forEach(b => b.addEventListener('click', () => { press(btns, b); set(b.dataset.sm); }));
+  bot.setAttribute('transform', 'translate(170,30)');
+  caption(); langHooks.push(caption);
+  onView($('[data-viz="crawl"]'), () => set('empty'));
+})();
+
+/* 2: page anatomy */
+(function(){
+  const btns = $$('[data-an]');
+  btns.forEach(b => b.addEventListener('click', () => {
+    press(btns, b);
+    $$('.anat-state').forEach(s => s.hidden = s.dataset.state !== b.dataset.an);
+    if (!reduce) $$(`.anat-state[data-state="${b.dataset.an}"] .tagrow`).forEach((r, i) => r.animate([{opacity:0, transform:'translateX(-8px)'}, {opacity:1, transform:'none'}], {duration: 300, delay: i * 60, fill: 'backwards'}));
+  }));
+})();
+
+/* 3: language share and city merge */
+(function(){
+  const bars = $$('.sharebar > span');
+  bars.forEach(s => s.style.width = '0');
+  onView($('#place .viz'), () => bars.forEach(s => s.style.width = s.dataset.w + '%'));
+  let merged = false;
+  const layout = () => $$('.city').forEach(c => {
+    const dots = $$('i', c), n = dots.length;
+    dots.forEach((d, i) => {
+      d.style.left = merged ? 'calc(50% - 15px)' : `calc(50% - ${n * 19}px + ${i * 38}px + 4px)`;
+      d.style.transform = merged && i === 0 ? 'scale(1.35)' : 'none';
+      d.style.opacity = merged && i ? 0 : .85;
+    });
+    $('[data-txt]', c).textContent = merged ? tr('One strong page', 'Una página fuerte') : tr(`${n} pages split the votes`, `${n} páginas se reparten los votos`);
+  });
+  layout(); langHooks.push(layout);
+  const btns = $$('[data-ct]');
+  btns.forEach(b => b.addEventListener('click', () => { press(btns, b); merged = b.dataset.ct === 'fixed'; layout(); }));
+})();
+
+/* 4: membership split */
+(function(){
+  const pgs = $$('#mbPages .pg'), cap = $('#mbCap'), ysr = $('#ysrName');
+  let fixed = null;
+  const text = () => {
+    ysr.textContent = fixed ? tr('The chosen page', 'La página elegida') : 'Ya soy respirador';
+    cap.textContent = fixed
+      ? tr('One page owns "membresía" (the team picks which one, task A04), the others link to it, and it can rank and convert.',
+           'Una sola página se ocupa de "membresía" (el equipo elige cuál, tarea A04), las demás enlazan a ella, y así puede posicionarse y convertir.')
+      : tr('Five pages share the searches, so none of them ranks strongly. The membership page itself is not even in the list.',
+           'Cinco páginas se reparten las búsquedas, así que ninguna se posiciona bien. La propia página de membresía ni siquiera está en la lista.');
+  };
+  const set = f => {
+    fixed = f;
+    pgs.forEach(p => {
+      const win = p.dataset.k === 'ysr';
+      p.classList.toggle('faded', f && !win); p.classList.toggle('winner', f && win);
+      $('i', p).style.width = f ? (win ? '100%' : '0%') : '22%';
+    });
+    text();
+  };
+  pgs.forEach(p => $('i', p).style.width = '0%');
+  text(); langHooks.push(text);
+  onView($('#relevance .viz'), () => set(false));
+  const btns = $$('[data-mb]');
+  btns.forEach(b => b.addEventListener('click', () => { press(btns, b); set(b.dataset.mb === 'fixed'); }));
+})();
+
+/* 5: CTR curve */
+(function(){
+  const ctr = [28.5,15.7,11,8,7.2,5.1,4,3.2,2.8,2.5];
+  const x = p => 40 + (p - 1) * 40, y = v => 190 - v * 6;
+  const pts = ctr.map((v, i) => [x(i + 1), y(v)]);
+  let d = `M${pts[0][0]},${pts[0][1]}`;
+  for (let i = 1; i < pts.length; i++) { const [x0, y0] = pts[i-1], [x1, y1] = pts[i]; d += ` C${x0 + 15},${y0} ${x1 - 15},${y1} ${x1},${y1}`; }
+  const curve = $('#ctrCurve'), area = $('#ctrArea');
+  curve.setAttribute('d', d); area.setAttribute('d', d + ` L${x(10)},190 L${x(1)},190 Z`);
+  const xl = $('#xlabels');
+  ctr.forEach((_, i) => { const t = document.createElementNS('http://www.w3.org/2000/svg', 'text'); t.setAttribute('x', x(i + 1)); t.setAttribute('y', 206); t.setAttribute('text-anchor', 'middle'); t.textContent = i + 1; xl.appendChild(t); });
+  const sx = x(2.1), sy = y(0.35), g = $('#skyPt');
+  $$('circle', g).forEach(c => { c.setAttribute('cx', sx); c.setAttribute('cy', sy); });
+  const gap = $('#skyGap'); gap.setAttribute('x1', sx); gap.setAttribute('x2', sx); gap.setAttribute('y1', y(14.9)); gap.setAttribute('y2', sy - 7);
+  const lbl = $('#skyLbl'); lbl.setAttribute('x', sx + 12); lbl.setAttribute('y', sy - 10);
+  const len = curve.getTotalLength();
+  curve.style.strokeDasharray = len; curve.style.strokeDashoffset = reduce ? 0 : len; area.style.opacity = reduce ? 1 : 0;
+  onView($('#choose .viz'), () => {
+    curve.style.transition = 'stroke-dashoffset 1.6s ease'; curve.style.strokeDashoffset = 0;
+    area.style.transition = 'opacity 1s 1.2s'; area.style.opacity = 1;
+    setTimeout(() => { g.style.transition = 'opacity .6s'; g.setAttribute('opacity', 1); }, reduce ? 0 : 1700);
+  });
+})();
+
+/* 6: triple counting and click trend */
+(function(){
+  const rows = $$('.gtm'), tot = $('#tot');
+  const run = () => {
+    rows.forEach(r => { $('i', r).style.width = '0'; $('b', r).textContent = '0'; }); tot.textContent = '0';
+    rows.forEach((r, i) => setTimeout(() => { $('i', r).style.width = '100%'; $('b', r).textContent = '1'; tot.textContent = i + 1; }, reduce ? 0 : 500 + i * 700));
+  };
+  onView($('#measure .viz'), () => { run(); $$('.trend .b').forEach(b => b.style.height = b.dataset.h + '%'); });
+  $('#replay').addEventListener('click', run);
+})();
+
+/* tasks */
+(function(){
+  const who = o => /global web team/i.test(o) ? 'global' : /argentina|center|marketing|seo lead|editor/i.test(o) ? 'ar' : 'other';
+  TASKS.forEach(t => t.who = who(t.owner));
+  const field = (t, k) => { const es = LANG === 'es' && TASKS_ES[t.id] && TASKS_ES[t.id][k]; const v = es || t[k]; return k === 'why' && v ? v[0].toUpperCase() + v.slice(1) : v; };
+  const priCls = p => /P0/.test(p) ? 'p0' : /P1/.test(p) ? 'p1' : 'p2';
+  const priTxt = p => (p.match(/P\d/) || ['P2'])[0];
+  const list = $('#list'), cnt = $('#count'), when = $('#when');
+  let phase = '';
+
+  function render() {
+    const open = new Set($$('.task[open]', list).map(el => el.id));
+    fill(list, TASKS.map(t => `
+      <details class="task" id="t-${t.id}"${open.has('t-' + t.id) ? ' open' : ''}>
+        <summary><span class="id">${t.id}</span><span class="tt">${esc(field(t, 'task'))}<span class="st">${STAGES[t.stage][LANG === 'es' ? 1 : 0]}, ${esc(tr(t.phase, PHASES_ES[t.phase] || t.phase))}</span></span><span class="ow">${esc(field(t, 'owner'))}</span><span class="pri ${priCls(t.priority)}">${priTxt(t.priority)}</span><span class="chev" aria-hidden="true">›</span></summary>
+        <div class="more">
+          <div><h4>${tr('Why it matters', 'Por qué importa')}</h4><p class="why">${esc(field(t, 'why'))}</p><h4>${tr('How we know it is done', 'Cómo sabemos que está hecho')}</h4><p>${esc(field(t, 'verify'))}</p></div>
+          <div><h4>${tr('What to do', 'Qué hacer')}</h4><p>${esc(field(t, 'action'))}</p><h4>${tr('Effort', 'Esfuerzo')}</h4><p>${esc(field(t, 'effort'))}</p>${t.blocked ? `<h4>${tr('Waiting on', 'Depende de')}</h4><p>${esc(field(t, 'blocked'))}</p>` : ''}</div>
+        </div>
+      </details>`).join(''));
+    fill(when, PHASES.map(p => `<button type="button" data-p="${p}" aria-pressed="${p === phase}"><b>${TASKS.filter(t => t.phase === p).length}</b>${esc(tr(p, PHASES_ES[p]))}</button>`).join(''));
+    $$('button', when).forEach(b => b.addEventListener('click', () => { phase = phase === b.dataset.p ? '' : b.dataset.p; $$('button', when).forEach(x => x.setAttribute('aria-pressed', x.dataset.p === phase)); apply(); }));
+    apply();
+  }
+
+  const fS = $('#fStage'), fW = $('#fWho'), fQ = $('#fQ');
+  function apply(){
+    const q = fQ.value.trim().toLowerCase(); let n = 0;
+    TASKS.forEach(t => {
+      const el = $('#t-' + t.id);
+      const es = TASKS_ES[t.id] || {};
+      const hay = [t.id, t.task, t.action, t.why, t.owner, es.task, es.action, es.why, es.owner].join(' ').toLowerCase();
+      const ok = (!fS.value || t.stage === fS.value) && (!fW.value || t.who === fW.value) && (!phase || t.phase === phase) && (!q || hay.includes(q));
+      el.hidden = !ok; if (ok) n++;
+    });
+    cnt.textContent = tr(`${n} of ${TASKS.length} tasks`, `${n} de ${TASKS.length} tareas`);
+  }
+  [fS, fW].forEach(s => s.addEventListener('change', apply)); fQ.addEventListener('input', apply);
+  render(); langHooks.push(render);
+
+  /* chips in each step jump to the task */
+  $$('[data-chips]').forEach(box => TASKS.filter(t => t.stage === box.dataset.chips).forEach(t => {
+    const b = document.createElement('button'); b.className = 'chip'; b.type = 'button'; b.textContent = t.id;
+    b.addEventListener('mouseenter', () => { b.title = field(t, 'task'); });
+    b.addEventListener('click', () => {
+      fS.value = ''; fW.value = ''; fQ.value = ''; phase = ''; $$('button', when).forEach(x => x.setAttribute('aria-pressed', 'false')); apply();
+      const el = $('#t-' + t.id); el.open = true; el.scrollIntoView({behavior: reduce ? 'auto' : 'smooth', block: 'center'});
+      el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash');
+    });
+    box.appendChild(b);
+  }));
+})();
+
+setLang(LANG);
+
+</script>
+</body>
+</html>
