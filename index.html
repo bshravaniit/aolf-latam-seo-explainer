@@ -1126,7 +1126,7 @@ function setLang(l) {
   $$('.lang button').forEach(b => b.setAttribute('aria-pressed', b.dataset.lang === l));
   $$('option[data-es]').forEach(o => { if (!o.dataset.en) o.dataset.en = o.textContent; o.textContent = l === 'es' ? o.dataset.es : o.dataset.en; });
   document.title = tr('How Search Finds Us', 'Cómo nos encuentra Google');
-  $('video').forEach(v => v.pause());
+  $$('video').forEach(v => v.pause());
   langHooks.forEach(fn => fn());
 }
 $$('.lang button').forEach(b => b.addEventListener('click', () => setLang(b.dataset.lang)));
